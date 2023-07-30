@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import axios from 'axios';
 import rough from "roughjs/bundled/rough.esm";
 import getStroke from "perfect-freehand";
 import "./style.css";
@@ -210,6 +211,12 @@ const usePressedKeys = () => {
   return pressedKeys;
 };
 
+
+
+
+
+
+
 const App = () => {
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState("none");
@@ -219,11 +226,14 @@ const App = () => {
   const [startPanMousePosition, setStartPanMousePosition] = React.useState({ x: 0, y: 0 });
   const textAreaRef = useRef();
   const pressedKeys = usePressedKeys();
+  
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
+   
     const context = canvas.getContext("2d");
     const roughCanvas = rough.canvas(canvas);
+    
 
     context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -437,7 +447,50 @@ const App = () => {
     updateElement(id, x1, y1, null, null, type, { text: event.target.value });
   };
 
-  return (
+
+  const handleSaveImage = () => {
+    const canvas = document.getElementById("canvas");
+    const link = document.createElement("a"); // creating <a> element
+    link.download = `${Date.now()}.jpg`; // set the file name for the downloaded image
+    link.href = canvas.toDataURL(); // set the canvas data as link href value
+    link.click(); // simulate clicking the link to download the image
+  };
+
+
+  const ImageToZplConverter = () => {
+    const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleImageChange = (event) => {
+    // const file = event.target.files[0];
+    const file = `${Date.now()}.jpg`;
+    setSelectedImage(file);
+  };
+
+  const convertToZpl = () => {
+    if (!selectedImage) {
+      alert('Please select an image first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+
+    axios.post('/api/convert-to-zpl', formData)
+      .then((response) => {
+        // Handle the response (e.g., show success message)
+        console.log(response.data);
+      })
+      .catch((error) => {
+        // Handle errors (e.g., show error message)
+        console.error('Error converting to ZPL:', error);
+      });
+  };
+
+
+
+
+
+    return (
     <body>
     <div className="container">
       
@@ -447,10 +500,11 @@ const App = () => {
           <label class="title">View</label>&emsp;
 
           {/* <label class="title">Save File</label> */}
-          <img width="24" height="24" padding="1" src="https://img.icons8.com/external-flaticons-flat-flat-icons/64/external-save-file-web-flaticons-flat-flat-icons.png" alt="external-save-file-web-flaticons-flat-flat-icons"/>&emsp;
-          
-          <button onClick={undo}>Undo</button>&emsp;
-          <button onClick={redo}>Redo</button>
+          <img width="24" height="24" padding="1" src="https://img.icons8.com/external-flaticons-flat-flat-icons/64/external-save-file-web-flaticons-flat-flat-icons.png" alt="external-save-file-web-flaticons-flat-flat-icons"  onClick={handleSaveImage} title="Click to Save Image"/>&emsp;
+          <img width="16" height="16" src="https://img.icons8.com/tiny-color/16/undo.png" alt="undo" onClick={undo} title="Undo"/>&emsp;
+          {/* <button onClick={undo}>Undo</button>&emsp; */}
+          {/* <button onClick={redo}>Redo</button> */}
+          <img width="16" height="16" src="https://img.icons8.com/tiny-color/16/redo.png" alt="redo" onClick={redo} title="Redo"/>
           {/* <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr> */}
         </div>
         
@@ -511,14 +565,14 @@ const App = () => {
             top: selectedElement.y1 - 2 + panOffset.y,
             left: selectedElement.x1 + panOffset.x,
             font: "24px sans-serif",
-            // margin: 0,
-            // padding: 0,
-            // border: 0,
-            // outline: 0,
-            // resize: "auto",
-            // overflow: "hidden",
-            // whiteSpace: "pre",
-            // background: "transparent",
+            margin: 0,
+            padding: 0,
+            border: 0,
+            outline: 0,
+            resize: "auto",
+            overflow: "hidden",
+            whiteSpace: "pre",
+            background: "transparent",
             zIndex: 2,
           }}
         />

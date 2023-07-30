@@ -40,8 +40,11 @@
    flex: 100%;
    /* overflow: hidden; */
    padding: 10px 5px 5px;
+   position: relative; /* Add position relative to make canvas position properly */
  }
- 
+ .drawing-board canvas{
+  background: transparent;
+ }
  .tools-board{
    width: 99.5%;
    padding: 10px 5px 5px;
