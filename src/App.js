@@ -1,28 +1,9 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import axios from 'axios';
-import rough from "roughjs/bundled/rough.esm";
+// import axios from 'axios';
+
 import getStroke from "perfect-freehand";
 import "./style.css";
 
-const generator = rough.generator();
-
-const createElement = (id, x1, y1, x2, y2, type) => {
-  switch (type) {
-    case "line":
-    case "rectangle":
-      const roughElement =
-        type === "line"
-          ? generator.line(x1, y1, x2, y2)
-          : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-      return { id, x1, y1, x2, y2, type, roughElement };
-    case "pencil":
-      return { id, type, points: [{ x: x1, y: y1 }] };
-    case "text":
-      return { id, type, x1, y1, x2, y2, text: "" };
-    default:
-      throw new Error(`Type not recognised: ${type}`);
-  }
-};
 
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
@@ -162,15 +143,24 @@ const getSvgPathFromStroke = stroke => {
   return d.join(" ");
 };
 
-const drawElement = (roughCanvas, context, element) => {
+
+
+
+const drawElement = (context, element) => {
   switch (element.type) {
     case "line":
+      context.beginPath();
+      context.moveTo(element.x1, element.y1);
+      context.lineTo(element.x2, element.y2);
+      context.stroke();
+      break;
     case "rectangle":
-      roughCanvas.draw(element.roughElement);
+      context.strokeRect(element.x1, element.y1, element.x2 - element.x1, element.y2 - element.y1);
       break;
     case "pencil":
-      const stroke = getSvgPathFromStroke(getStroke(element.points));
-      context.fill(new Path2D(stroke));
+      const stroke = getStroke(element.points);
+      const path = new Path2D(getSvgPathFromStroke(stroke));
+      context.fill(path);
       break;
     case "text":
       context.textBaseline = "top";
@@ -181,6 +171,9 @@ const drawElement = (roughCanvas, context, element) => {
       throw new Error(`Type not recognised: ${element.type}`);
   }
 };
+
+
+
 
 const adjustmentRequired = type => ["line", "rectangle"].includes(type);
 
@@ -213,10 +206,6 @@ const usePressedKeys = () => {
 
 
 
-
-
-
-
 const App = () => {
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState("none");
@@ -226,15 +215,37 @@ const App = () => {
   const [startPanMousePosition, setStartPanMousePosition] = React.useState({ x: 0, y: 0 });
   const textAreaRef = useRef();
   const pressedKeys = usePressedKeys();
-  
+  const [tabOrder, setTabOrder] = useState(0); // Step 1: Tab order state
+
+  const [showDropdown, setShowDropdown] = useState(false);
+
+/***************************************************************************** */
+  // Toggle the dropdown visibility
+  function toggleDropdown() {
+    setShowDropdown((prevShowDropdown) => !prevShowDropdown);
+  }
+
+  // Close the dropdown if the user clicks outside of it
+  function handleClickOutside(event) {
+    if (!event.target.matches('.dropbtn')) {
+      setShowDropdown(false);
+    }
+  }
+
+  // Attach the event listener for clicks outside the dropdown
+  React.useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+ /***************************************************************************** */ 
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
    
     const context = canvas.getContext("2d");
-    const roughCanvas = rough.canvas(canvas);
     
-
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     context.save();
@@ -242,7 +253,7 @@ const App = () => {
 
     elements.forEach(element => {
       if (action === "writing" && selectedElement.id === element.id) return;
-      drawElement(roughCanvas, context, element);
+      drawElement(context, element);
     });
     context.restore();
   }, [elements, action, selectedElement, panOffset]);
@@ -287,6 +298,32 @@ const App = () => {
       }, 0);
     }
   }, [action, selectedElement]);
+
+
+  const createElement = (id, x1, y1, x2, y2, type) => {
+     switch (type) {
+      case "line":
+        return { id, x1, y1, x2, y2, type };
+      case "rectangle":
+        return { id, x1, y1, x2, y2, type };
+      case "pencil":
+        return { id, type, points: [{ x: x1, y: y1 }] };
+      case "text":
+        // return { id, type, x1, y1, x2, y2, text: "" };
+        
+        // Step 2: Include tabOrder for text elements
+        const element = { id, type, x1, y1, x2, y2, text: "" };
+        if (type === "text") {
+          element.tabOrder = tabOrder;
+          setTabOrder(prevTabOrder => prevTabOrder + 1); // Step 3: Increment tab order for the next text element
+        }
+        return element;
+        
+      default:
+        throw new Error(`Type not recognised: ${type}`);
+    }
+  };
+
 
   const updateElement = (id, x1, y1, x2, y2, type, options) => {
     const elementsCopy = [...elements];
@@ -440,11 +477,14 @@ const App = () => {
     setSelectedElement(null);
   };
 
+
   const handleBlur = event => {
     const { id, x1, y1, type } = selectedElement;
     setAction("none");
     setSelectedElement(null);
-    updateElement(id, x1, y1, null, null, type, { text: event.target.value });
+    // Step 5: Update tab order when a text element is committed
+    const newText = event.target.value;
+    updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
 
@@ -457,35 +497,60 @@ const App = () => {
   };
 
 
-  const ImageToZplConverter = () => {
-    const [selectedImage, setSelectedImage] = useState(null);
-
-  const handleImageChange = (event) => {
-    // const file = event.target.files[0];
-    const file = `${Date.now()}.jpg`;
-    setSelectedImage(file);
+    // Helper function to update tab order of the text elements after deletion
+    
+  // Step 4: Add helper function to update tab order after deletion
+  const updateTabOrderAfterDeletion = deletedTabOrder => {
+    const updatedElements = elements.map(element => {
+      if (element.type === "text" && element.tabOrder > deletedTabOrder) {
+        return { ...element, tabOrder: element.tabOrder - 1 };
+      }
+      return element;
+    });
+    setElements(updatedElements, true);
+    setTabOrder(prevTabOrder => prevTabOrder - 1);
   };
 
-  const convertToZpl = () => {
-    if (!selectedImage) {
-      alert('Please select an image first.');
-      return;
+   
+    // Step 6: Add handleDelete function
+  const handleDelete = () => {
+    if (selectedElement) {
+      const index = selectedElement.id;
+      if (selectedElement.type === "text") {
+        updateTabOrderAfterDeletion(selectedElement.tabOrder); // Step 4: Update tab order after deletion
+      }
+      const updatedElements = elements.filter(element => element.id !== index);
+      setElements(updatedElements, true);
+      setSelectedElement(null);
     }
-
-    const formData = new FormData();
-    formData.append('image', selectedImage);
-
-    axios.post('/api/convert-to-zpl', formData)
-      .then((response) => {
-        // Handle the response (e.g., show success message)
-        console.log(response.data);
-      })
-      .catch((error) => {
-        // Handle errors (e.g., show error message)
-        console.error('Error converting to ZPL:', error);
-      });
   };
 
+// Step 6: Function to update tabOrder of the selected element
+
+const handleTabOrderChange = event => {
+  const newTabOrder = parseInt(event.target.value);
+  if (!isNaN(newTabOrder)) {
+    const updatedElements = elements.map(element => {
+      if (element.id === selectedElement.id) {
+        return { ...element, tabOrder: newTabOrder };
+      }
+      return element;
+    });
+    setElements(updatedElements, true);
+  }
+};
+
+
+// Step 2: Add a useEffect to update tabOrder when undo or redo is called
+useEffect(() => {
+  setTabOrder(elements.length); // Update tabOrder when undo or redo is called
+}, [elements]);
+
+// useEffect(() => {
+//   if (selectedElement && selectedElement.type === "text") {
+//     setTabOrder(selectedElement.tabOrder);
+//   }
+// }, [undo, redo]);
 
 
 
@@ -496,7 +561,16 @@ const App = () => {
       
       <section class="tools-board">
         <div>
-          <label class="title">Files</label>&emsp;
+         
+            <div class="dropdown">
+              <button onClick={toggleDropdown} class="dropbtn">File</button>&emsp;
+              <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
+                <a href="#home">New</a>
+                <a href="#about">Open</a>
+                <a href="#contact">Save</a>
+              </div>
+            </div>
+
           <label class="title">View</label>&emsp;
 
           {/* <label class="title">Save File</label> */}
@@ -505,14 +579,20 @@ const App = () => {
           {/* <button onClick={undo}>Undo</button>&emsp; */}
           {/* <button onClick={redo}>Redo</button> */}
           <img width="16" height="16" src="https://img.icons8.com/tiny-color/16/redo.png" alt="redo" onClick={redo} title="Redo"/>
-          {/* <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr> */}
+          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
         </div>
         
         {/* <div className="row shape" style={{ position: "fixed", paddingTop: "1.2cm" }}> */}
         <div>
         <img width="24" height="27" src="https://img.icons8.com/external-itim2101-flat-itim2101/64/000000/external-printer-school-stationery-itim2101-flat-itim2101.png" alt="external-printer-school-stationery-itim2101-flat-itim2101"/>&emsp;&nbsp;
         <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>&emsp;&nbsp;
-        <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>&emsp;
+        <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>&emsp;&nbsp;
+       
+        
+        <img width="28" height="27" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-daily-export"/>&emsp;&nbsp;
+        <img width="28" height="29" src="https://img.icons8.com/color/48/weight-kg.png" alt="weight-kg"/>&emsp;&nbsp;
+        <img width="28" height="28" src="https://img.icons8.com/offices/30/database-export.png" alt="database-export"/>&emsp;&nbsp;
+         
          <input
           type="radio"
           id="selection"
@@ -521,9 +601,6 @@ const App = () => {
         />
         <label htmlFor="selection">Selection</label>&emsp;
        
-
-        {/* <img width="50" height="50" src="https://img.icons8.com/ios/50/barcode.png" alt="barcode"/> */}
-        
 
         <input type="radio" id="line" checked={tool === "line"} onChange={() => setTool("line")} />
         <img width="24" height="24" src="https://img.icons8.com/color/48/line.png" alt="line"/>&emsp;
@@ -552,8 +629,16 @@ const App = () => {
         <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color"/>&emsp;&emsp;&nbsp;
         {/* <label htmlFor="text">Text</label> */}
 
-        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="picture"/>
-        
+        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic"/>
+        <hr style={{color:"#fff9f7", width:"590%"}}></hr>
+      </div>
+      <div>
+        <label for="label-size"> Label Template Size : </label>
+        <input type="text" id="label-size" name="label-size"/>&emsp;
+        <label for="label-name"> Label Name : </label>
+        <input type="text" id="label-name" name="label-name"/>&emsp;
+        <button>Barcode Format</button>&emsp;
+        <button>QR-code Format</button>
       </div>
       </section>
       {action === "writing" ? (
@@ -577,9 +662,42 @@ const App = () => {
           }}
         />
       ) : null}
-      
+       
       
         <section class="drawing-board">
+        <div>
+          <label><b>Behaviour</b></label>
+          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+
+          <label for="tab-o">
+            Tab Order:
+             <input
+                id="tab-o"
+                type="number"
+                // value={selectedElement.tabOrder}
+                value={selectedElement?.type === "text" ? selectedElement.tabOrder : ""}
+                onChange={handleTabOrderChange}
+              />
+            
+            {/* Add a button to delete the selected element */}
+            <button onClick={handleDelete}>Delete</button>
+          </label>
+          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          
+          <label><b>Misc</b></label>
+          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+
+          <label for="font">Font Size :
+          <input type="number" id="font" name="font"/></label><br/>
+
+          <label for="style">Style :
+          <input type="text" id="style" name="style"/></label><br/>
+
+          <label for="H-R">Height-Ratio :
+          <input type="number" id="H-R" name="H-R"/></label>
+          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+        </div> 
+        <div>
         <canvas
           id="canvas"
           width={window.innerWidth}
@@ -589,8 +707,10 @@ const App = () => {
           onMouseUp={handleMouseUp}
           style={{ position: "absolute", zIndex: 1 }}
         >
-          Canvas
+        
         </canvas>
+        </div>
+        
         </section>
     </div>
   </body>
@@ -598,18 +718,4 @@ const App = () => {
 };
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
