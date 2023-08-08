@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-// import axios from 'axios';
+import axios from 'axios';
 
 import getStroke from "perfect-freehand";
 import "./style.css";
@@ -218,9 +218,33 @@ const App = () => {
   const [tabOrder, setTabOrder] = useState(0); // Step 1: Tab order state
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [entities, setEntities] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
 
+  // Function to handle the click event for database image
+
+  useEffect(() => {
+    if (isOpen && entities.length === 0) {
+      // Make a GET request to fetch entities from the backend
+      axios.get('')
+        .then(response => {
+          setEntities(response.data); // Update the state with fetched entities
+        })
+        .catch(error => {
+          console.error('Error fetching entities:', error);
+        });
+    }
+  }, [isOpen, entities]);
+
+  const handleImageClick = () => {
+    setIsOpen(!isOpen); // Toggle the list open/close state
+  };
+
+  const handleOutsideClick = () => {
+    setIsOpen(false); // Close the list when clicked outside
+  };
 /***************************************************************************** */
-  // Toggle the dropdown visibility
+  // Toggle the dropdown visibility for file label open
   function toggleDropdown() {
     setShowDropdown((prevShowDropdown) => !prevShowDropdown);
   }
@@ -496,6 +520,58 @@ const App = () => {
     link.click(); // simulate clicking the link to download the image
   };
 
+  const serializeCanvas = (elements) => {
+    return JSON.stringify(elements);
+  };
+  const deserializeCanvas = (data) => {
+    return JSON.parse(data);
+  };
+  const handleSaveFile = () => {
+    const canvas = document.getElementById("canvas");
+    const serializedData = serializeCanvas(elements);
+    const blob = new Blob([serializedData], { type: "application/json" });
+    const link = document.createElement("a");
+    link.download = `${Date.now()}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  };
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = e.target.result;
+        const deserializedElements = deserializeCanvas(data);
+        setElements(deserializedElements);
+      };
+      reader.readAsText(file);
+    }
+  };
+  
+  // Add this input element in your JSX:
+  // <input type="file" onChange={handleFileUpload} />
+      
+
+
+  // const handleSaveImage = () => {
+  //   const canvas = document.getElementById("canvas");
+  //   const context = canvas.getContext("2d");
+  
+  //   const jsonData = JSON.stringify(elements);
+  
+  //   const blob = new Blob([jsonData], { type: "application/json" });
+  //   const url = URL.createObjectURL(blob);
+  
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.download = `${Date.now()}.json`;
+  //   link.click();
+  
+  //   // Revoking the URL object to free up resources
+  //   URL.revokeObjectURL(url);
+  // };
+  
+
 
     // Helper function to update tab order of the text elements after deletion
     
@@ -552,6 +628,8 @@ useEffect(() => {
 //   }
 // }, [undo, redo]);
 
+/********************************************************************************************* */
+       
 
 
 
@@ -566,8 +644,19 @@ useEffect(() => {
               <button onClick={toggleDropdown} class="dropbtn">File</button>&emsp;
               <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
                 <a href="#home">New</a>
-                <a href="#about">Open</a>
-                <a href="#contact">Save</a>
+                {/* <a href="#about" onClick={handleFileUpload}>Open</a> */}
+                <input
+                    type="file"
+                    id="fileInput"
+                    onChange={handleFileUpload}
+                    style={{ display: "none" }}
+                  />
+                  <label htmlFor="fileInput" style={{ cursor: "pointer", padding: "8px 12px" }}>
+                    Open
+                  </label>
+
+                {/* <a href="#contact">Save</a> */}
+                <a href="#home" onClick={handleSaveFile}>Save</a>
               </div>
             </div>
 
@@ -588,8 +677,22 @@ useEffect(() => {
         <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>&emsp;&nbsp;
         <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>&emsp;&nbsp;
        
-        
-        <img width="28" height="27" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-daily-export"/>&emsp;&nbsp;
+        <div onClick={handleOutsideClick}>
+        <img width="28" height="27" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-daily-export" onClick={handleImageClick} style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
+        {isOpen && (
+        <div className="entity-list">
+          {entities.length > 0 ? (
+            <ul>
+              {entities.map(entity => (
+                <li key={entity.id}>{entity.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No entities to display</p>
+          )}
+        </div>
+      )}
+      </div>
         <img width="28" height="29" src="https://img.icons8.com/color/48/weight-kg.png" alt="weight-kg"/>&emsp;&nbsp;
         <img width="28" height="28" src="https://img.icons8.com/offices/30/database-export.png" alt="database-export"/>&emsp;&nbsp;
          

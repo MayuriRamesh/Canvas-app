@@ -120,9 +120,39 @@
   display: block;
 }
 .dropdown a:hover {background-color: #ddd;}
+.dropdown #fileInput:hover {background-color: #ddd;}
 
 .show {display: block;}
 
+
+
+
+
+.entity-list {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  z-index: 1;
+}
+
+.entity-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.entity-list ul li {
+  padding: 4px;
+  cursor: pointer;
+}
+
+.entity-list ul li:hover {
+  background-color: #f1f1f1;
+}
 
 
  /*
