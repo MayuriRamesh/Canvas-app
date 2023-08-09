@@ -226,9 +226,10 @@ const App = () => {
   useEffect(() => {
     if (isOpen && entities.length === 0) {
       // Make a GET request to fetch entities from the backend
-      axios.get('')
+      axios.get('http://127.0.0.1:4000/select_labels')
         .then(response => {
           setEntities(response.data); // Update the state with fetched entities
+          console.log("hii!",response)
         })
         .catch(error => {
           console.error('Error fetching entities:', error);
@@ -238,6 +239,15 @@ const App = () => {
 
   const handleImageClick = () => {
     setIsOpen(!isOpen); // Toggle the list open/close state
+    axios.get('http://127.0.0.1:4000/select_labels')
+    .then(response => {
+      setEntities(response.data); // Update the state with fetched entities
+      console.log("hii!",response)
+    })
+    .catch(error => {
+      console.error('Error fetching entities:', error);
+    });
+
   };
 
   const handleOutsideClick = () => {
