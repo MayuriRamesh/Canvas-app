@@ -1,9 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import axios from 'axios';
-
 import getStroke from "perfect-freehand";
 import "./style.css";
-
 
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
@@ -144,8 +142,6 @@ const getSvgPathFromStroke = stroke => {
 };
 
 
-
-
 const drawElement = (context, element) => {
   switch (element.type) {
     case "line":
@@ -171,9 +167,6 @@ const drawElement = (context, element) => {
       throw new Error(`Type not recognised: ${element.type}`);
   }
 };
-
-
-
 
 const adjustmentRequired = type => ["line", "rectangle"].includes(type);
 
@@ -217,42 +210,160 @@ const App = () => {
   const pressedKeys = usePressedKeys();
   const [tabOrder, setTabOrder] = useState(0); // Step 1: Tab order state
 
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false); //file dropdown
   const [entities, setEntities] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [selectedEntityName, setSelectedEntityName] = useState(''); //select the name from DB list
+  const canvasRef = useRef(null);
 
-  // Function to handle the click event for database image
+  const [isListOpen, setIsListOpen] = useState(false);  //list open/close
+  const entityListRef = useRef(null);  //The event listener checks if the clicked target is outside the entity-list div using the listRef reference. If the click is detected outside the list, the list is closed (isListOpen is set to false).
 
   useEffect(() => {
-    if (isOpen && entities.length === 0) {
-      // Make a GET request to fetch entities from the backend
-      axios.get('http://127.0.0.1:4000/select_labels')
-        .then(response => {
-          setEntities(response.data); // Update the state with fetched entities
-          console.log("hii!",response)
-        })
-        .catch(error => {
-          console.error('Error fetching entities:', error);
-        });
-    }
-  }, [isOpen, entities]);
+        console.log("Entities updated in useEffect:", entities);
+        }, [entities]);
 
-  const handleImageClick = () => {
-    setIsOpen(!isOpen); // Toggle the list open/close state
+  //   useEffect(() => {
+  //   //function is a callback that is invoked whenever a click event occurs anywhere on the document 
+  //   //(i.e., the entire web page). Its purpose in the given code is to determine whether the click event occurred outside of the entity list
+  //   // (the dropdown) and, if so, close the list.
+  //   const handleDocumentClick = (event) => {
+  //     if (entityListRef.current && !entityListRef.current.contains(event.target)) {
+  //       setIsListOpen(false);
+  //     }
+  //   };
+
+  //   window.addEventListener('click', handleDocumentClick);
+
+  //   return () => {
+  //     window.removeEventListener('click', handleDocumentClick);
+  //   };
+  // }, []); 
+  
+  
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      // Get the canvas element
+      const canvas = canvasRef.current;
+  
+      // Check if the clicked target is outside the entity list and the canvas
+      if (
+        entityListRef.current &&
+        !entityListRef.current.contains(event.target) &&
+        !canvas.contains(event.target)
+      ) {
+        setIsListOpen(false);
+      }
+    };
+  
+    window.addEventListener('click', handleDocumentClick);
+  
+    return () => {
+      window.removeEventListener('click', handleDocumentClick);
+    };
+  }, []);
+  
+  
+
+  const handleDBImageClick = () => {
+    // setIsListOpen(prevIsListOpen => !prevIsListOpen); // Toggle the list open/close state
+    console.log('handleImageClick triggered');
+    console.log('Before state update - isListOpen:', isListOpen);
+    setIsListOpen(!isListOpen);
+    
+  // Close the list if it's open
+  if (isListOpen) {
+    // If the list is already open, close it
+    setIsListOpen(false);
+  } else {
+    // If the list is not open, open it
+    setIsListOpen(true);
+    
+    console.log('After state update - isListOpen:', isListOpen);
+   axios.get('http://127.0.0.1:4000/select_labels')
+    .then(response => {
+    const responseData = response.data.data; // Access the 'data' property
+console.log("resssssssssssponseeee",response)
+console.log("resssssssssssponseeee 2",responseData)
+    // Assuming the response is an array of entities
+    if (Array.isArray(responseData)) {
+      setEntities(responseData);
+      console.log("Entities updated:", responseData);
+      
+    } else {
+      console.error('Invalid response format:', responseData);
+      
+    }
+  })
+  .catch(error => {
+    console.error('Error fetching entities:', error);
+  });
+}
+console.log('isListOpen:', isListOpen);
+  };
+
+  const handleEntityClick = (entityName) => {
+    setSelectedEntityName(entityName);
+    setIsListOpen(false);
+    console.log("selecteddddddddddddd nameeeeeeee",entityName);
+  };
+
+  // const handleClickOutsideDBimg = (event) => {                  //to close the database list
+  //   if (entityListRef.current && !entityListRef.current.contains(event.target)) {
+  //     setIsListOpen(false);
+  //   }
+  // };
+
+
+
+  const handleWeightDBImageClick = () => {
+    console.log('handleImageClick triggered');
+        
     axios.get('http://127.0.0.1:4000/select_labels')
     .then(response => {
-      setEntities(response.data); // Update the state with fetched entities
-      console.log("hii!",response)
-    })
-    .catch(error => {
-      console.error('Error fetching entities:', error);
-    });
-
+    const responseData = response.data.data; // Access the 'data' property
+console.log("resssssssssssponseeee",response)
+console.log("resssssssssssponseeee 2",responseData)
+    // Assuming the response is an array of entities
+    if (Array.isArray(responseData)) {
+      setEntities(responseData);
+      console.log("Entities updated:", responseData);
+      
+    } else {
+      console.error('Invalid response format:', responseData);
+      
+    }
+  })
+  .catch(error => {
+    console.error('Error fetching entities:', error);
+  });
   };
 
-  const handleOutsideClick = () => {
-    setIsOpen(false); // Close the list when clicked outside
+  const handleTimeDBImageClick = () => {
+    console.log('handleImageClick triggered');
+    
+    
+    axios.get('http://127.0.0.1:4000/select_labels')
+    .then(response => {
+    const responseData = response.data.data; // Access the 'data' property
+console.log("resssssssssssponseeee",response)
+console.log("resssssssssssponseeee 2",responseData)
+    // Assuming the response is an array of entities
+    if (Array.isArray(responseData)) {
+      setEntities(responseData);
+      console.log("Entities updated:", responseData);
+      
+    } else {
+      console.error('Invalid response format:', responseData);
+      
+    }
+  })
+  .catch(error => {
+    console.error('Error fetching entities:', error);
+  });
   };
+
+
+
 /***************************************************************************** */
   // Toggle the dropdown visibility for file label open
   function toggleDropdown() {
@@ -277,11 +388,8 @@ const App = () => {
 
   useLayoutEffect(() => {
     const canvas = document.getElementById("canvas");
-   
     const context = canvas.getContext("2d");
-    
     context.clearRect(0, 0, canvas.width, canvas.height);
-
     context.save();
     context.translate(panOffset.x, panOffset.y);
 
@@ -333,7 +441,6 @@ const App = () => {
     }
   }, [action, selectedElement]);
 
-
   const createElement = (id, x1, y1, x2, y2, type) => {
      switch (type) {
       case "line":
@@ -357,7 +464,6 @@ const App = () => {
         throw new Error(`Type not recognised: ${type}`);
     }
   };
-
 
   const updateElement = (id, x1, y1, x2, y2, type, options) => {
     const elementsCopy = [...elements];
@@ -389,8 +495,8 @@ const App = () => {
   };
 
   const getMouseCoordinates = event => {
-    const clientX = event.clientX - panOffset.x;
-    const clientY = event.clientY - panOffset.y;
+    const clientX = event.clientX - 100 //panOffset.x;
+    const clientY = event.clientY - 100 //panOffset.y;
     return { clientX, clientY };
   };
 
@@ -435,6 +541,7 @@ const App = () => {
     }
   };
 
+  
   const handleMouseMove = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
 
@@ -485,6 +592,9 @@ const App = () => {
     }
   };
 
+
+  
+
   const handleMouseUp = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
     if (selectedElement) {
@@ -511,6 +621,8 @@ const App = () => {
     setSelectedElement(null);
   };
 
+
+  
 
   const handleBlur = event => {
     const { id, x1, y1, type } = selectedElement;
@@ -558,33 +670,8 @@ const App = () => {
     }
   };
   
-  // Add this input element in your JSX:
-  // <input type="file" onChange={handleFileUpload} />
-      
 
-
-  // const handleSaveImage = () => {
-  //   const canvas = document.getElementById("canvas");
-  //   const context = canvas.getContext("2d");
-  
-  //   const jsonData = JSON.stringify(elements);
-  
-  //   const blob = new Blob([jsonData], { type: "application/json" });
-  //   const url = URL.createObjectURL(blob);
-  
-  //   const link = document.createElement("a");
-  //   link.href = url;
-  //   link.download = `${Date.now()}.json`;
-  //   link.click();
-  
-  //   // Revoking the URL object to free up resources
-  //   URL.revokeObjectURL(url);
-  // };
-  
-
-
-    // Helper function to update tab order of the text elements after deletion
-    
+   
   // Step 4: Add helper function to update tab order after deletion
   const updateTabOrderAfterDeletion = deletedTabOrder => {
     const updatedElements = elements.map(element => {
@@ -632,26 +719,42 @@ useEffect(() => {
   setTabOrder(elements.length); // Update tabOrder when undo or redo is called
 }, [elements]);
 
-// useEffect(() => {
-//   if (selectedElement && selectedElement.type === "text") {
-//     setTabOrder(selectedElement.tabOrder);
-//   }
-// }, [undo, redo]);
+const drawCanvas = () => {
+  const canvas = canvasRef.current;
+  const ctx = canvas.getContext('2d');
 
-/********************************************************************************************* */
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw your other canvas content here
+  elements.forEach(element => {
+    drawElement(ctx, element);
+  });
+  // Draw the selected entity name
+  ctx.font = '16px Arial';
+  ctx.fillStyle = 'black';
+  // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
+  ctx.fillText(` ${selectedEntityName}`,130,50)
+};
+
+// Call drawCanvas whenever the selected entity name changes
+useEffect(() => {
+  drawCanvas();
+}, [selectedEntityName]);
+
+/************************************************************************ */
+
        
-
-
 
     return (
     <body>
     <div className="container">
       
-      <section class="tools-board">
+      <section className="tools-board">
         <div>
          
-            <div class="dropdown">
-              <button onClick={toggleDropdown} class="dropbtn">File</button>&emsp;
+            <div className="dropdown">
+              <button onClick={toggleDropdown} className="dropbtn">File</button>&emsp;
               <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
                 <a href="#home">New</a>
                 {/* <a href="#about" onClick={handleFileUpload}>Open</a> */}
@@ -670,7 +773,7 @@ useEffect(() => {
               </div>
             </div>
 
-          <label class="title">View</label>&emsp;
+          <label className="title">View</label>&emsp;
 
           {/* <label class="title">Save File</label> */}
           <img width="24" height="24" padding="1" src="https://img.icons8.com/external-flaticons-flat-flat-icons/64/external-save-file-web-flaticons-flat-flat-icons.png" alt="external-save-file-web-flaticons-flat-flat-icons"  onClick={handleSaveImage} title="Click to Save Image"/>&emsp;
@@ -687,24 +790,46 @@ useEffect(() => {
         <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>&emsp;&nbsp;
         <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>&emsp;&nbsp;
        
-        <div onClick={handleOutsideClick}>
-        <img width="28" height="27" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-daily-export" onClick={handleImageClick} style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
-        {isOpen && (
-        <div className="entity-list">
-          {entities.length > 0 ? (
-            <ul>
-              {entities.map(entity => (
-                <li key={entity.id}>{entity.name}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No entities to display</p>
-          )}
-        </div>
-      )}
-      </div>
-        <img width="28" height="29" src="https://img.icons8.com/color/48/weight-kg.png" alt="weight-kg"/>&emsp;&nbsp;
-        <img width="28" height="28" src="https://img.icons8.com/offices/30/database-export.png" alt="database-export"/>&emsp;&nbsp;
+        {/* <div onClick={handleOutsideClick}> */}
+          <img
+            width="28"
+            height="27"
+            src="https://img.icons8.com/offices/30/database-export.png"
+            alt="database-daily-export"
+            onClick={handleDBImageClick}
+            style={{ cursor: 'pointer' }}
+          />&emsp;&nbsp;
+          {/* {isListOpen && ( */}
+          <div className={`entity-list ${isListOpen ? 'open' : ''}`} ref={entityListRef}>
+              
+              {entities.length> 0 ? (
+                <ul>
+                                  
+                    {/* {(() => {
+                    const listItems = [];
+                    for (let i = 0; i < entities.length; i++) {
+                      const entity = entities[i];
+                      listItems.push(<li key={entity.id}>{entity.name}</li>);
+                    }
+                    return listItems;
+                  })()} */}
+
+                  {entities.map(entity => (
+                          <li key={entity.id} onClick={() => handleEntityClick(entity.name)} className={selectedEntityName === entity.name ? 'selected' : ''}>
+                            {entity.name}
+                          </li>
+                        ))}
+                 
+                </ul>
+              ):(<p> </p>
+              )}
+            </div>
+          {/* )} */}
+            
+        <img width="28" height="29" src="https://img.icons8.com/color/48/weight-kg.png" alt="weight-kg" onClick={handleWeightDBImageClick}
+            style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
+        <img width="28" height="28" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-export"onClick={handleTimeDBImageClick}
+            style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
          
          <input
           type="radio"
@@ -742,7 +867,7 @@ useEffect(() => {
         <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color"/>&emsp;&emsp;&nbsp;
         {/* <label htmlFor="text">Text</label> */}
 
-        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic"/>
+        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" />
         <hr style={{color:"#fff9f7", width:"590%"}}></hr>
       </div>
       <div>
@@ -760,7 +885,7 @@ useEffect(() => {
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: selectedElement.y1 - 2 + panOffset.y,
+            top: selectedElement.y1 + panOffset.y - 2,
             left: selectedElement.x1 + panOffset.x,
             font: "24px sans-serif",
             margin: 0,
@@ -777,7 +902,7 @@ useEffect(() => {
       ) : null}
        
       
-        <section class="drawing-board">
+        <section className="drawing-board">
         <div>
           <label><b>Behaviour</b></label>
           <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
@@ -814,13 +939,17 @@ useEffect(() => {
         <canvas
           id="canvas"
           width={window.innerWidth}
+          ref={canvasRef}
           height={window.innerHeight}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           style={{ position: "absolute", zIndex: 1 }}
+         
         >
-        
+         
+           
+          
         </canvas>
         </div>
         

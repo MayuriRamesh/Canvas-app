@@ -130,24 +130,35 @@
 
 .entity-list {
   position: absolute;
-  top: 40px;
-  left: 0;
+  top: 95px;
+  left: 170px;
   background-color: white;
+  
   border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 8px;
+  padding: 3px;
   z-index: 1;
 }
 
 .entity-list ul {
   list-style: none;
+  color: black;
   padding: 0;
   margin: 0;
+
+
 }
 
 .entity-list ul li {
-  padding: 4px;
+  /* padding: 4px;
   cursor: pointer;
+  color: black; */
+  
+  color: black;
+  padding: 5px 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
 }
 
 .entity-list ul li:hover {
