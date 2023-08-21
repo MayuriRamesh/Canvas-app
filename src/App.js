@@ -215,7 +215,7 @@ const App = () => {
   const [selectedEntityName, setSelectedEntityName] = useState(''); //select the name from DB list
   const canvasRef = useRef(null);
 
-  const [isListOpen, setIsListOpen] = useState(false);  //list open/close
+  const [isListOpen, setIsListOpen] = useState(true);  //list open/close
   const entityListRef = useRef(null);  //The event listener checks if the clicked target is outside the entity-list div using the listRef reference. If the click is detected outside the list, the list is closed (isListOpen is set to false).
 
   const [selectedEntityPosition, setSelectedEntityPosition] = useState({ x: 0, y: 0 });   //setting coordinates to move the DB entities on canvas
@@ -271,7 +271,7 @@ const App = () => {
     console.log('handleImageClick triggered');
     console.log('Before state update - isListOpen:', isListOpen);
     // setIsListOpen(!isListOpen);
-    setIsListOpen(prevIsListOpen => !prevIsListOpen);
+    
     
   // Close the list if it's open
   // if (isListOpen) {
@@ -282,8 +282,8 @@ const App = () => {
   //   setIsListOpen(true);
     
     
-  if (!isListOpen) {
-    setIsListOpen(true);
+  if (isListOpen) {
+    setIsListOpen(false);
     axios.get('http://127.0.0.1:4000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
@@ -302,6 +302,10 @@ console.log("resssssssssssponseeee 2",responseData)
   .catch(error => {
     console.error('Error fetching entities:', error);
   });
+  }
+  else{
+    setIsListOpen(true);
+    setEntities([]);
   }
 console.log('isListOpen:', isListOpen);
 console.log('After state update - isListOpen:', isListOpen);
@@ -781,7 +785,7 @@ const drawCanvas = () => {
   const ctx = canvas.getContext('2d');
 
   // Clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw your other canvas content here
   elements.forEach(element => {
