@@ -219,7 +219,9 @@ const App = () => {
   const entityListRef = useRef(null);  //The event listener checks if the clicked target is outside the entity-list div using the listRef reference. If the click is detected outside the list, the list is closed (isListOpen is set to false).
 
   const [selectedEntityPosition, setSelectedEntityPosition] = useState({ x: 0, y: 0 });   //setting coordinates to move the DB entities on canvas
-
+  const [text_array, settext_array]= useState([])
+  const [val_array, setval_array]= useState([])
+  
   useEffect(() => {
         console.log("Entities updated in useEffect:", entities);
         }, [entities]);
@@ -240,6 +242,16 @@ const App = () => {
   //     window.removeEventListener('click', handleDocumentClick);
   //   };
   // }, []); 
+
+  const handleInputTextArrayChange = (event) => {
+    // const inputValue = event.target.value;
+    settext_array= event.target.value;
+  };
+
+  const handleInputEntityArrayChange = (event) => {
+    // const inputValue = event.target.value;
+    settext_array= event.target.value;
+  };
   
   
   useEffect(() => {
@@ -449,7 +461,7 @@ console.log("resssssssssssponseeee 2",responseData)
       setTimeout(() => {
         textArea.focus();
         textArea.value = selectedElement.text;  //when we click on text to edit, the existing text will show as it is to edit.
-        //text.push(selectedElement.text)
+        text_array.push(selectedElement.text)
       }, 0);
     }
   }, [action, selectedElement]);
@@ -694,7 +706,7 @@ console.log("resssssssssssponseeee 2",responseData)
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
-  const jsonData = () =>{
+  const  jsonData= () =>{
       let data = {
         'label_text' : text_array, //text label array
         'label_values': val_array  /// val array
@@ -708,14 +720,19 @@ console.log("resssssssssssponseeee 2",responseData)
     link.download = `${Date.now()}.jpg`; // set the file name for the downloaded image
     link.href = canvas.toDataURL(); // set the canvas data as link href value
     link.click(); // simulate clicking the link to download the image
-
-    const post_data = //give function call to json data 
-    //to send post req to generate code 
-     axios.get('http://127.0.0.1:4000/generate_zpl',post_data)
+    try{ 
+    const post_data = jsonData()//give function call to json data 
+    //to send post req to generate code
+    console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
+     axios.post('http://127.0.0.1:4000/generate_zpl',post_data)
     .then(response => {
     // Access the 'data' property
-    console.log("resssssssssssponseeee",response)
+    console.log(" resssssssssssponseeee",response)
 })
+    }
+    catch(error){
+
+    }
 
   };
 
