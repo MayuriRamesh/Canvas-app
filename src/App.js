@@ -243,6 +243,14 @@ const App = () => {
   //   };
   // }, []); 
 
+//   const connectionOptions = {
+//     "force new connection": true,
+//     "reconnectionAttempts": "Infinity",
+//     "reconnection": false,
+//     "timeout": 10000,
+//     "transports": ["polling"]
+// };
+
   const handleInputTextArrayChange = (event) => {
     // const inputValue = event.target.value;
     settext_array= event.target.value;
@@ -327,17 +335,10 @@ console.log('After state update - isListOpen:', isListOpen);
     setSelectedEntityName(entityName);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityName);
+    val_array.push("#########",entityName)
     const entityPosition = { x: 100, y: 100 }; // Replace with actual coordinates
   setSelectedEntityPosition(entityPosition);
   };
-
-  // const handleClickOutsideDBimg = (event) => {                  //to close the database list
-  //   if (entityListRef.current && !entityListRef.current.contains(event.target)) {
-  //     setIsListOpen(false);
-  //   }
-  // };
-
-
 
   const handleWeightDBImageClick = () => {
     console.log('handleImageClick triggered');
@@ -461,8 +462,11 @@ console.log("resssssssssssponseeee 2",responseData)
       setTimeout(() => {
         textArea.focus();
         textArea.value = selectedElement.text;  //when we click on text to edit, the existing text will show as it is to edit.
-        text_array.push(selectedElement.text)
+        // console.log("prrrrrrrrrrrrrrrint",textArea[0]);
+        // text_array.push(textArea)
       }, 0);
+      console.log("prrrrrrrrrrrrrrrint",textArea[0]);
+      text_array.push(textArea)
     }
   }, [action, selectedElement]);
 
@@ -707,9 +711,12 @@ console.log("resssssssssssponseeee 2",responseData)
   };
 
   const  jsonData= () =>{
-      let data = {
-        'label_text' : text_array, //text label array
-        'label_values': val_array  /// val array
+      // let data = {
+      //   'label_text' : text_array, //text label array
+      //   'label_values': val_array  /// val array
+      // }
+      let data={
+        'label_text': 123
       }
       return JSON.stringify(data)
   }
@@ -831,13 +838,18 @@ const drawCanvas = () => {
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
   const adjustedX = 190 + panOffset.x;
   const adjustedY = 100 + panOffset.y;
-  ctx.fillText(` ${selectedEntityName}`,adjustedX,adjustedY)
+  ctx.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
+  // val_array.push(selectedEntityName);
+  // console.log("valueeeeeeeeeeeee arrayyyyyyy",selectedEntityName)
   
 };
 
 // Call drawCanvas whenever the selected entity name changes
 useEffect(() => {
+  // val_array.push(selectedEntityName);
+  // console.log("valueeeeeeeeeeeee arrayyyyyyy",selectedEntityName)
   drawCanvas();
+  // val_array.push(selectedEntityName);
 }, [selectedEntityName]);
 
 /************************************************************************ */
