@@ -218,6 +218,8 @@ const App = () => {
   const [isListOpen, setIsListOpen] = useState(false);  //list open/close
   const entityListRef = useRef(null);  //The event listener checks if the clicked target is outside the entity-list div using the listRef reference. If the click is detected outside the list, the list is closed (isListOpen is set to false).
 
+  const [selectedEntityPosition, setSelectedEntityPosition] = useState({ x: 0, y: 0 });   //setting coordinates to move the DB entities on canvas
+
   useEffect(() => {
         console.log("Entities updated in useEffect:", entities);
         }, [entities]);
@@ -268,18 +270,21 @@ const App = () => {
     // setIsListOpen(prevIsListOpen => !prevIsListOpen); // Toggle the list open/close state
     console.log('handleImageClick triggered');
     console.log('Before state update - isListOpen:', isListOpen);
-    setIsListOpen(!isListOpen);
+    // setIsListOpen(!isListOpen);
+    setIsListOpen(prevIsListOpen => !prevIsListOpen);
     
   // Close the list if it's open
-  if (isListOpen) {
-    // If the list is already open, close it
-    setIsListOpen(false);
-  } else {
-    // If the list is not open, open it
-    setIsListOpen(true);
+  // if (isListOpen) {
+  //   // If the list is already open, close it
+  //   setIsListOpen(false);
+  // } else {
+  //   // If the list is not open, open it
+  //   setIsListOpen(true);
     
-    console.log('After state update - isListOpen:', isListOpen);
-   axios.get('http://127.0.0.1:4000/select_labels')
+    
+  if (!isListOpen) {
+    setIsListOpen(true);
+    axios.get('http://127.0.0.1:4000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -297,14 +302,17 @@ console.log("resssssssssssponseeee 2",responseData)
   .catch(error => {
     console.error('Error fetching entities:', error);
   });
-}
+  }
 console.log('isListOpen:', isListOpen);
+console.log('After state update - isListOpen:', isListOpen);
   };
 
   const handleEntityClick = (entityName) => {
     setSelectedEntityName(entityName);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityName);
+    const entityPosition = { x: 100, y: 100 }; // Replace with actual coordinates
+  setSelectedEntityPosition(entityPosition);
   };
 
   // const handleClickOutsideDBimg = (event) => {                  //to close the database list
@@ -437,6 +445,7 @@ console.log("resssssssssssponseeee 2",responseData)
       setTimeout(() => {
         textArea.focus();
         textArea.value = selectedElement.text;  //when we click on text to edit, the existing text will show as it is to edit.
+        //text.push(selectedElement.text)
       }, 0);
     }
   }, [action, selectedElement]);
@@ -500,7 +509,7 @@ console.log("resssssssssssponseeee 2",responseData)
     return { clientX, clientY };
   };
 
-  const handleMouseDown = event => {
+  const handleMouseDown = (event, canvasContext) => {
     if (action === "writing") return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
@@ -513,6 +522,33 @@ console.log("resssssssssssponseeee 2",responseData)
 
     if (tool === "selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
+/**************************************************************************************************************************** */
+          // Check if the mouse is within the bounding box of the entity name
+    const canvas = canvasRef.current;
+    const canvasRect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - canvasRect.left;
+    const mouseY = event.clientY - canvasRect.top;
+
+    // Check if the mouse is over the entity name
+    const entityNameRect = {
+      x: 190 + panOffset.x,
+      y: 100 + panOffset.y,
+      width: canvasContext.measureText(selectedEntityName).width,
+      height: 16, // Adjust this value as needed
+    };
+
+      if (
+      mouseX >= entityNameRect.x &&
+      mouseX <= entityNameRect.x + entityNameRect.width &&
+      mouseY >= entityNameRect.y &&
+      mouseY <= entityNameRect.y + entityNameRect.height
+      ) {
+        // Start the drag operation for the entity name
+        canvas.style.cursor = "move"; // Change the cursor to 'move'
+        setAction("dragging");
+        setStartPanMousePosition({ x: clientX, y: clientY });
+      }
+/******************************************************************************************************************** */
       if (element) {
         if (element.type === "pencil") {
           const xOffsets = element.points.map(point => clientX - point.x);
@@ -590,6 +626,20 @@ console.log("resssssssssssponseeee 2",responseData)
       const { x1, y1, x2, y2 } = resizedCoordinates(clientX, clientY, position, coordinates);
       updateElement(id, x1, y1, x2, y2, type);
     }
+    /******************************************************************************************* */
+    // If dragging the entity name
+  if (action === "dragging") {
+    const deltaX = clientX - startPanMousePosition.x;
+    const deltaY = clientY - startPanMousePosition.y;
+    setStartPanMousePosition({ x: clientX, y: clientY });
+
+    // Update the entity name position
+    setPanOffset(prevPanOffset => ({
+      x: prevPanOffset.x + deltaX,
+      y: prevPanOffset.y + deltaY,
+    }));
+    return;
+  } /***************************************************************************************** */
   };
 
 
@@ -617,8 +667,15 @@ console.log("resssssssssssponseeee 2",responseData)
 
     if (action === "writing") return;
 
+    // If dragging the entity name
+  if (action === "dragging") {
+    setAction("none");
+    return;
+  }
+
     setAction("none");
     setSelectedElement(null);
+  
   };
 
 
@@ -731,10 +788,14 @@ const drawCanvas = () => {
     drawElement(ctx, element);
   });
   // Draw the selected entity name
+
   ctx.font = '16px Arial';
   ctx.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
-  ctx.fillText(` ${selectedEntityName}`,130,50)
+  const adjustedX = 190 + panOffset.x;
+  const adjustedY = 100 + panOffset.y;
+  ctx.fillText(` ${selectedEntityName}`,adjustedX,adjustedY)
+  
 };
 
 // Call drawCanvas whenever the selected entity name changes
@@ -800,7 +861,7 @@ useEffect(() => {
             style={{ cursor: 'pointer' }}
           />&emsp;&nbsp;
           {/* {isListOpen && ( */}
-          <div className={`entity-list ${isListOpen ? 'open' : ''}`} ref={entityListRef}>
+          <div className={`entity-list ${isListOpen ? 'open' : ''}`} >
               
               {entities.length> 0 ? (
                 <ul>
@@ -941,10 +1002,40 @@ useEffect(() => {
           width={window.innerWidth}
           ref={canvasRef}
           height={window.innerHeight}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
+          // onMouseDown={handleMouseDown}
+          // onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
+          // onMouseMove={handleMouseMove}
+          // onMouseUp={handleMouseUp}
+          // style={{ position: "absolute", zIndex: 1 }}
+          onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
+          onMouseMove={event => {
+            const canvas = canvasRef.current;
+            const canvasRect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - canvasRect.left;
+            const mouseY = event.clientY - canvasRect.top;
+        
+            // Check if the mouse is over the entity name
+            const entityNameRect = {
+              x: 130 + panOffset.x,
+              y: 50 + panOffset.y,
+              width: canvasRef.current.getContext('2d').measureText(selectedEntityName).width,
+              height: 16, // Adjust this value as needed
+            };
+        
+            if (
+              mouseX >= entityNameRect.x &&
+              mouseX <= entityNameRect.x + entityNameRect.width &&
+              mouseY >= entityNameRect.y &&
+              mouseY <= entityNameRect.y + entityNameRect.height
+            ) {
+              canvas.style.cursor = "move"; // Change the cursor to 'move'
+            } else {
+              canvas.style.cursor = "default"; // Change the cursor back to 'default'
+            }
+        
+            handleMouseMove(event);
+          }}
           onMouseUp={handleMouseUp}
-          style={{ position: "absolute", zIndex: 1 }}
          
         >
          
