@@ -690,6 +690,13 @@ console.log("resssssssssssponseeee 2",responseData)
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
+  const jsonData = () =>{
+      let data = {
+        'label_text' : text_array, //text label array
+        'label_values': val_array  /// val array
+      }
+      return JSON.stringify(data)
+  }
 
   const handleSaveImage = () => {
     const canvas = document.getElementById("canvas");
@@ -697,6 +704,15 @@ console.log("resssssssssssponseeee 2",responseData)
     link.download = `${Date.now()}.jpg`; // set the file name for the downloaded image
     link.href = canvas.toDataURL(); // set the canvas data as link href value
     link.click(); // simulate clicking the link to download the image
+
+    const post_data = //give function call to json data 
+    //to send post req to generate code 
+     axios.get('http://127.0.0.1:4000/generate_zpl',post_data)
+    .then(response => {
+    // Access the 'data' property
+    console.log("resssssssssssponseeee",response)
+})
+
   };
 
   const serializeCanvas = (elements) => {
