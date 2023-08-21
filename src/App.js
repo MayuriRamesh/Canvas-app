@@ -335,7 +335,7 @@ console.log('After state update - isListOpen:', isListOpen);
     setSelectedEntityName(entityName);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityName);
-    val_array.push("#########",entityName)
+    val_array.push(entityName)
     const entityPosition = { x: 100, y: 100 }; // Replace with actual coordinates
   setSelectedEntityPosition(entityPosition);
   };
@@ -711,13 +711,13 @@ console.log("resssssssssssponseeee 2",responseData)
   };
 
   const  jsonData= () =>{
-      // let data = {
-      //   'label_text' : text_array, //text label array
-      //   'label_values': val_array  /// val array
-      // }
-      let data={
-        'label_text': 123
+      let data = {
+        'label_text' : text_array, //text label array
+        'label_values': val_array  /// val array
       }
+      // let data={
+      //   'label_text': 123
+      // }
       return JSON.stringify(data)
   }
 
@@ -731,7 +731,11 @@ console.log("resssssssssssponseeee 2",responseData)
     const post_data = jsonData()//give function call to json data 
     //to send post req to generate code
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
-     axios.post('http://127.0.0.1:4000/generate_zpl',post_data)
+     axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
     .then(response => {
     // Access the 'data' property
     console.log(" resssssssssssponseeee",response)
