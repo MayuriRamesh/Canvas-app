@@ -131,7 +131,7 @@
 .entity-list {
   position: absolute;
   top: 95px;
-  left: 170px;
+  left: 230px;
   background-color: white;
   
   border: 1px solid #ccc;
@@ -164,6 +164,84 @@
 .entity-list ul li:hover {
   background-color: #f1f1f1;
 }
+
+
+
+.wt-entity-list {
+  position: absolute;
+  top: 95px;
+  left: 280px;
+  background-color: white;
+  
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 3px;
+  z-index: 1;
+}
+
+.wt-entity-list ul {
+  list-style: none;
+  color: black;
+  padding: 0;
+  margin: 0;
+
+
+}
+
+.wt-entity-list ul li {
+  /* padding: 4px;
+  cursor: pointer;
+  color: black; */
+  
+  color: black;
+  /* padding: 5px 6px; */
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.wt-entity-list ul li:hover {
+  background-color: #f1f1f1;
+}
+
+
+.tm-entity-list {
+  position: absolute;
+  top: 95px;
+  left: 330px;
+  background-color: white;
+  
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 3px;
+  z-index: 1;
+}
+
+.tm-entity-list ul {
+  list-style: none;
+  color: black;
+  padding: 0;
+  margin: 0;
+
+
+}
+
+.tm-entity-list ul li {
+  /* padding: 4px;
+  cursor: pointer;
+  color: black; */
+  
+  color: black;
+  /* padding: 5px 6px; */
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.tm-entity-list ul li:hover {
+  background-color: #f1f1f1;
+}
+
 
 
  /*

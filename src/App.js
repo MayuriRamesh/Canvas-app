@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import axios from 'axios';
 import getStroke from "perfect-freehand";
 import "./style.css";
+import Switch from '@mui/material/Switch';
 
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
@@ -219,8 +220,23 @@ const App = () => {
   const entityListRef = useRef(null);  //The event listener checks if the clicked target is outside the entity-list div using the listRef reference. If the click is detected outside the list, the list is closed (isListOpen is set to false).
 
   const [selectedEntityPosition, setSelectedEntityPosition] = useState({ x: 0, y: 0 });   //setting coordinates to move the DB entities on canvas
-  const [text_array, settext_array]= useState([])
-  const [val_array, setval_array]= useState([])
+  // const text_array=[]
+  const [text_array, setTextArray] = useState([]);
+  const [val_array, setval_array]= useState([]);
+  const [barcodeFlag, setbarcodeFlag] = useState(false);
+  const [qrFlag, setqrFlag] = useState(false);
+  
+
+  const handlebarcodeFlagToggle = () => {
+    setbarcodeFlag(!barcodeFlag); // Toggle the flag value
+    console.log("barcode flag******",(!barcodeFlag));
+    
+  };
+  const handleQRcodeFlagToggle = () => {
+    setqrFlag(!qrFlag); // Toggle the flag value
+    console.log("barcode flag******",(!qrFlag));
+    
+  };
   
   useEffect(() => {
         console.log("Entities updated in useEffect:", entities);
@@ -251,15 +267,15 @@ const App = () => {
 //     "transports": ["polling"]
 // };
 
-  const handleInputTextArrayChange = (event) => {
-    // const inputValue = event.target.value;
-    settext_array= event.target.value;
-  };
+  // const handleInputTextArrayChange = (event) => {
+  //   // const inputValue = event.target.value;
+  //   settext_array= event.target.value;
+  // };
 
-  const handleInputEntityArrayChange = (event) => {
-    // const inputValue = event.target.value;
-    settext_array= event.target.value;
-  };
+  // const handleInputEntityArrayChange = (event) => {
+  //   // const inputValue = event.target.value;
+  //   settext_array= event.target.value;
+  // };
   
   
   useEffect(() => {
@@ -287,21 +303,9 @@ const App = () => {
   
 
   const handleDBImageClick = () => {
-    // setIsListOpen(prevIsListOpen => !prevIsListOpen); // Toggle the list open/close state
     console.log('handleImageClick triggered');
     console.log('Before state update - isListOpen:', isListOpen);
-    // setIsListOpen(!isListOpen);
-    
-    
-  // Close the list if it's open
-  // if (isListOpen) {
-  //   // If the list is already open, close it
-  //   setIsListOpen(false);
-  // } else {
-  //   // If the list is not open, open it
-  //   setIsListOpen(true);
-    
-    
+
   if (isListOpen) {
     setIsListOpen(false);
     axios.get('http://127.0.0.1:4000/select_labels')
@@ -331,6 +335,7 @@ console.log('isListOpen:', isListOpen);
 console.log('After state update - isListOpen:', isListOpen);
   };
 
+
   const handleEntityClick = (entityName) => {
     setSelectedEntityName(entityName);
     setIsListOpen(false);
@@ -340,34 +345,31 @@ console.log('After state update - isListOpen:', isListOpen);
   setSelectedEntityPosition(entityPosition);
   };
 
-  const handleWeightDBImageClick = () => {
-    console.log('handleImageClick triggered');
-        
-    axios.get('http://127.0.0.1:4000/select_labels')
-    .then(response => {
-    const responseData = response.data.data; // Access the 'data' property
-console.log("resssssssssssponseeee",response)
-console.log("resssssssssssponseeee 2",responseData)
-    // Assuming the response is an array of entities
-    if (Array.isArray(responseData)) {
-      setEntities(responseData);
-      console.log("Entities updated:", responseData);
-      
-    } else {
-      console.error('Invalid response format:', responseData);
-      
-    }
-  })
-  .catch(error => {
-    console.error('Error fetching entities:', error);
-  });
+  const handlewtEntityClick = (entityWt) => {
+    setSelectedEntityName(entityWt);
+    setIsListOpen(false);
+    console.log("selecteddddddddddddd nameeeeeeee",entityWt);
+    val_array.push(entityWt)
+    const entityPosition = { x: 120, y: 100 }; // Replace with actual coordinates
+  setSelectedEntityPosition(entityPosition);
   };
 
-  const handleTimeDBImageClick = () => {
+  const handleTDEntityClick = (entityTd) => {
+    setSelectedEntityName(entityTd);
+    setIsListOpen(false);
+    console.log("selecteddddddddddddd nameeeeeeee",entityTd);
+    val_array.push(entityTd)
+    const entityPosition = { x: 140, y: 100 }; // Replace with actual coordinates
+  setSelectedEntityPosition(entityPosition);
+  };
+
+  const handleWeightDBImageClick = () => {
     console.log('handleImageClick triggered');
-    
-    
-    axios.get('http://127.0.0.1:4000/select_labels')
+    console.log('Before state update - isListOpen:', isListOpen);
+
+  if (isListOpen) {
+    setIsListOpen(false);
+    axios.get('http://127.0.0.1:4000/select_units')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -385,6 +387,48 @@ console.log("resssssssssssponseeee 2",responseData)
   .catch(error => {
     console.error('Error fetching entities:', error);
   });
+  }
+  else{
+    setIsListOpen(true);
+    setEntities([]);
+  }
+console.log('isListOpen:', isListOpen);
+console.log('After state update - isListOpen:', isListOpen);
+  };
+
+
+
+  const handleTimeDBImageClick = () => {
+        console.log('handleImageClick triggered');
+    console.log('Before state update - isListOpen:', isListOpen);
+
+  if (isListOpen) {
+    setIsListOpen(false);
+    axios.get('http://127.0.0.1:4000/select_date_time')
+    .then(response => {
+    const responseData = response.data.data; // Access the 'data' property
+console.log("resssssssssssponseeee",response)
+console.log("resssssssssssponseeee 2",responseData)
+    // Assuming the response is an array of entities
+    if (Array.isArray(responseData)) {
+      setEntities(responseData);
+      console.log("Entities updated:", responseData);
+      
+    } else {
+      console.error('Invalid response format:', responseData);
+      
+    }
+  })
+  .catch(error => {
+    console.error('Error fetching entities:', error);
+  });
+  }
+  else{
+    setIsListOpen(true);
+    setEntities([]);
+  }
+console.log('isListOpen:', isListOpen);
+console.log('After state update - isListOpen:', isListOpen);
   };
 
 
@@ -415,6 +459,7 @@ console.log("resssssssssssponseeee 2",responseData)
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
+    drawCanvas();
     context.save();
     context.translate(panOffset.x, panOffset.y);
 
@@ -710,10 +755,14 @@ console.log("resssssssssssponseeee 2",responseData)
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
-  const  jsonData= () =>{
+  const  jsonData= (labelNameValue) =>{
+    const textareaValues = text_array.map(textArea => textArea.value);
       let data = {
-        'label_text' : text_array, //text label array
-        'label_values': val_array  /// val array
+        'label_text' : textareaValues, //text label array
+        'label_values': val_array,  /// val array
+        'is_barcode': barcodeFlag,
+        'is_QRcode': qrFlag,
+        'company_name':labelNameValue
       }
       // let data={
       //   'label_text': 123
@@ -723,12 +772,13 @@ console.log("resssssssssssponseeee 2",responseData)
 
   const handleSaveImage = () => {
     const canvas = document.getElementById("canvas");
-    const link = document.createElement("a"); // creating <a> element
+   const link = document.createElement("a"); // creating <a> element
     link.download = `${Date.now()}.jpg`; // set the file name for the downloaded image
     link.href = canvas.toDataURL(); // set the canvas data as link href value
     link.click(); // simulate clicking the link to download the image
-    try{ 
-    const post_data = jsonData()//give function call to json data 
+    try{
+    const labelNameValue = document.getElementById("label_name").value; 
+    const post_data = jsonData(labelNameValue)//give function call to json data 
     //to send post req to generate code
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
      axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
@@ -826,34 +876,32 @@ useEffect(() => {
 
 const drawCanvas = () => {
   const canvas = canvasRef.current;
-  const ctx = canvas.getContext('2d');
+  const context = canvas.getContext('2d');
 
   // Clear the canvas
-  // ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // context.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw your other canvas content here
-  elements.forEach(element => {
-    drawElement(ctx, element);
-  });
+  // elements.forEach(element => {
+  //   drawElement(context, element);
+  // });
   // Draw the selected entity name
 
-  ctx.font = '16px Arial';
-  ctx.fillStyle = 'black';
+  context.font = '16px Arial';
+  context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
   const adjustedX = 190 + panOffset.x;
   const adjustedY = 100 + panOffset.y;
-  ctx.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
-  // val_array.push(selectedEntityName);
-  // console.log("valueeeeeeeeeeeee arrayyyyyyy",selectedEntityName)
+  context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
+  
   
 };
 
 // Call drawCanvas whenever the selected entity name changes
 useEffect(() => {
-  // val_array.push(selectedEntityName);
-  // console.log("valueeeeeeeeeeeee arrayyyyyyy",selectedEntityName)
+  
   drawCanvas();
-  // val_array.push(selectedEntityName);
+  
 }, [selectedEntityName]);
 
 /************************************************************************ */
@@ -901,10 +949,26 @@ useEffect(() => {
         {/* <div className="row shape" style={{ position: "fixed", paddingTop: "1.2cm" }}> */}
         <div>
         <img width="24" height="27" src="https://img.icons8.com/external-itim2101-flat-itim2101/64/000000/external-printer-school-stationery-itim2101-flat-itim2101.png" alt="external-printer-school-stationery-itim2101-flat-itim2101"/>&emsp;&nbsp;
-        <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>&emsp;&nbsp;
-        <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>&emsp;&nbsp;
-       
+        <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>
+        <Switch
+        checked={barcodeFlag}
+        onChange={handlebarcodeFlagToggle}
+        color="primary"
+        size="small"
+        inputProps={{ 'aria-label': 'flag switch' }}
+      />
+      &nbsp;
+
+        <img width="24" height="24" src="https://img.icons8.com/external-sbts2018-outline-sbts2018/58/external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018.png" alt="external-qr-code-black-friday-5-basic-sbts2018-outline-sbts2018"/>
+        <Switch
+        checked={qrFlag}
+        onChange={handleQRcodeFlagToggle}
+        color="primary"
+        size="small"
+        inputProps={{ 'aria-label': 'flag switch' }}
+        />&nbsp;
         {/* <div onClick={handleOutsideClick}> */}
+
           <img
             width="28"
             height="27"
@@ -916,7 +980,7 @@ useEffect(() => {
           {/* {isListOpen && ( */}
           <div className={`entity-list ${isListOpen ? 'open' : ''}`} >
               
-              {entities.length> 0 ? (
+              {entities.length> 0 && (
                 <ul>
                                   
                     {/* {(() => {
@@ -935,15 +999,62 @@ useEffect(() => {
                         ))}
                  
                 </ul>
-              ):(<p> </p>
-              )}
+              )
+              }
             </div>
-          {/* )} */}
+         
             
         <img width="28" height="29" src="https://img.icons8.com/color/48/weight-kg.png" alt="weight-kg" onClick={handleWeightDBImageClick}
             style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
+            <div className={`wt-entity-list ${isListOpen ? 'open' : ''}`} >
+              
+              {entities.length> 0 && (
+                <ul>
+                    {/* {(() => {
+                    const listItems = [];
+                    for (let i = 0; i < entities.length; i++) {
+                      const entity = entities[i];
+                      listItems.push(<li key={entity.id}>{entity.name}</li>);
+                    }
+                    return listItems;
+                  })()} */}
+
+                  {entities.map(entity => (
+                          <li key={entity.id} onClick={() => handlewtEntityClick(entity.wt)} className={selectedEntityName === entity.wt ? 'selected' : ''}>
+                            {entity.wt}
+                          </li>
+                        ))}
+                </ul>
+              )}
+            </div>
+            
         <img width="28" height="28" src="https://img.icons8.com/offices/30/database-daily-export.png" alt="database-export"onClick={handleTimeDBImageClick}
             style={{ cursor: 'pointer' }}/>&emsp;&nbsp;
+
+            <div className={`tm-entity-list ${isListOpen ? 'open' : ''}`} >
+              
+              {entities.length> 0 && (
+                <ul>
+                                  
+                    {/* {(() => {
+                    const listItems = [];
+                    for (let i = 0; i < entities.length; i++) {
+                      const entity = entities[i];
+                      listItems.push(<li key={entity.id}>{entity.name}</li>);
+                    }
+                    return listItems;
+                  })()} */}
+
+                  {entities.map(entity => (
+                          <li key={entity.id} onClick={() => handleTDEntityClick(entity.date)} className={selectedEntityName === entity.date ? 'selected' : ''}>
+                            {entity.date}
+                          </li>
+                        ))}
+                 
+                </ul>
+              )
+              }
+            </div>
          
          <input
           type="radio"
@@ -987,8 +1098,8 @@ useEffect(() => {
       <div>
         <label for="label-size"> Label Template Size : </label>
         <input type="text" id="label-size" name="label-size"/>&emsp;
-        <label for="label-name"> Label Name : </label>
-        <input type="text" id="label-name" name="label-name"/>&emsp;
+        <label for="label_name"> Label Name : </label>
+        <input type="text" id="label_name" name="label_name"/>&emsp;
         <button>Barcode Format</button>&emsp;
         <button>QR-code Format</button>
       </div>
@@ -1091,9 +1202,7 @@ useEffect(() => {
           onMouseUp={handleMouseUp}
          
         >
-         
-           
-          
+   
         </canvas>
         </div>
         
