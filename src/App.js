@@ -153,6 +153,7 @@ const drawElement = (context, element) => {
       break;
     case "rectangle":
       context.strokeRect(element.x1, element.y1, element.x2 - element.x1, element.y2 - element.y1);
+      console.log("drawwwwwww rect start point x,y",element.x1, element.y1)
       break;
     case "pencil":
       const stroke = getStroke(element.points);
@@ -161,7 +162,7 @@ const drawElement = (context, element) => {
       break;
     case "text":
       context.textBaseline = "top";
-      context.font = "24px sans-serif";
+      // context.font = "24px sans-serif";
       context.fillText(element.text, element.x1, element.y1);
       break;
     default:
@@ -200,7 +201,7 @@ const usePressedKeys = () => {
 
 
 
-const App = () => {
+const App = ({ context }) => {
   const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState("none");
   const [tool, setTool] = useState("rectangle");
@@ -225,7 +226,62 @@ const App = () => {
   const [val_array, setval_array]= useState([]);
   const [barcodeFlag, setbarcodeFlag] = useState(false);
   const [qrFlag, setqrFlag] = useState(false);
+
+  const defaultCanvasWidth = 100; // Default canvas width in millimeters
+  const defaultCanvasHeight = 80; // Default canvas height in millimeters
+  const [canvasWidth, setCanvasWidth] = useState(defaultCanvasWidth);
+  const [canvasHeight, setCanvasHeight] = useState(defaultCanvasHeight);
+  const [selectedSize, setSelectedSize] = useState(`${defaultCanvasWidth}x${defaultCanvasHeight}`);
+  const [fontSize, setFontSize] = useState(24);
   
+
+  const handleSizeChange = (event) => {
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");
+    const newSize = event.target.value;
+    const [newWidth, newHeight] = newSize.split("x").map(Number);
+    setSelectedSize(newSize);
+    setCanvasWidth(newWidth);
+    setCanvasHeight(newHeight);
+    // Calculate the font size based on the new canvas size
+  // const fontSize = Math.min(newWidth, newHeight) * 0.1; // Adjust the multiplier as needed
+  // const fontSize =Math.min(newWidth / 10, newHeight / 10);
+  // context.font = `${fontSize}px sans-serif`; // Update the font size
+  };
+
+  const handleFontSizeChange = (event) => {
+    
+    const newSize = parseInt(event.target.value, 10);
+    setFontSize(newSize);
+    
+    console.log("********new font size *****",newSize)
+  };
+  // const redrawCanvas = (elements) => {
+  //   const canvas = document.getElementById("canvas");
+  //   const context = canvas.getContext("2d");
+  //   // Clear the canvas
+  //   // context.clearRect(0, 0, canvas.width, canvas.height);
+  
+  //   // Draw each element with the new font size
+  //   // elements.forEach(drawElement); // Assume elements contains the elements to draw
+  //   elements.forEach(element => {
+  //        drawElement(context, element);
+  //      });
+  // };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+   // Draw text with updated font size
+    context.font = `${fontSize}px sans-serif`;
+
+    text_array.forEach((element) => {
+      context.fillText(element.text, element.x, element.y);
+    });
+    // context.fillText("Hello, World!", 10, 50);
+    console.log("********new font size useEffect *****",fontSize)
+    // redrawCanvas();
+  }, [fontSize]);
 
   const handlebarcodeFlagToggle = () => {
     setbarcodeFlag(!barcodeFlag); // Toggle the flag value
@@ -278,27 +334,27 @@ const App = () => {
   // };
   
   
-  useEffect(() => {
-    const handleDocumentClick = (event) => {
-      // Get the canvas element
-      const canvas = canvasRef.current;
+  // useEffect(() => {
+  //   const handleDocumentClick = (event) => {
+  //     // Get the canvas element
+  //     const canvas = canvasRef.current;
   
-      // Check if the clicked target is outside the entity list and the canvas
-      if (
-        entityListRef.current &&
-        !entityListRef.current.contains(event.target) &&
-        !canvas.contains(event.target)
-      ) {
-        setIsListOpen(false);
-      }
-    };
+  //     // Check if the clicked target is outside the entity list and the canvas
+  //     if (
+  //       entityListRef.current &&
+  //       !entityListRef.current.contains(event.target) &&
+  //       !canvas.contains(event.target)
+  //     ) {
+  //       setIsListOpen(false);
+  //     }
+  //   };
   
-    window.addEventListener('click', handleDocumentClick);
+  //   window.addEventListener('click', handleDocumentClick);
   
-    return () => {
-      window.removeEventListener('click', handleDocumentClick);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener('click', handleDocumentClick);
+  //   };
+  // }, []);
   
   
 
@@ -341,7 +397,7 @@ console.log('After state update - isListOpen:', isListOpen);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityName);
     val_array.push(entityName)
-    const entityPosition = { x: 100, y: 100 }; // Replace with actual coordinates
+    const entityPosition = { x: 50, y: 50 }; // Replace with actual coordinates
   setSelectedEntityPosition(entityPosition);
   };
 
@@ -459,6 +515,7 @@ console.log('After state update - isListOpen:', isListOpen);
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
+    console.log("*****inside the useLayoutEffect*******")
     drawCanvas();
     context.save();
     context.translate(panOffset.x, panOffset.y);
@@ -466,6 +523,7 @@ console.log('After state update - isListOpen:', isListOpen);
     elements.forEach(element => {
       if (action === "writing" && selectedElement.id === element.id) return;
       drawElement(context, element);
+     
     });
     context.restore();
   }, [elements, action, selectedElement, panOffset]);
@@ -568,10 +626,15 @@ console.log('After state update - isListOpen:', isListOpen);
     setElements(elementsCopy, true);
   };
 
-  const getMouseCoordinates = event => {
-    const clientX = event.clientX - 100 //panOffset.x;
-    const clientY = event.clientY - 100 //panOffset.y;
+  const getMouseCoordinates = (event) => {
+    const canvas = canvasRef.current;
+     const canvasRect = canvas.getBoundingClientRect();
+    const clientX = event.clientX - canvasRect.left //panOffset.x;//186,194
+    const clientY = event.clientY - canvasRect.top //panOffset.y;//179 ,156
+    console.log("x, y",clientX, clientY);
+    console.log("pan offffffsetttttttt",panOffset.x, panOffset.y )
     return { clientX, clientY };
+    
   };
 
   const handleMouseDown = (event, canvasContext) => {
@@ -647,12 +710,15 @@ console.log('After state update - isListOpen:', isListOpen);
     const { clientX, clientY } = getMouseCoordinates(event);
 
     if (action === "panning") {
-      const deltaX = clientX - startPanMousePosition.x;
-      const deltaY = clientY - startPanMousePosition.y;
+      const deltaX = clientX -startPanMousePosition.x;
+      const deltaY = clientY -startPanMousePosition.y ;
       setPanOffset({
         x: panOffset.x + deltaX,
         y: panOffset.y + deltaY,
-      });
+        
+      }
+      );
+      console.log("offfffffsettttt",panOffset.x, panOffset.y)
       return;
     }
 
@@ -755,14 +821,15 @@ console.log('After state update - isListOpen:', isListOpen);
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
-  const  jsonData= (labelNameValue) =>{
+  const  jsonData= (labelNameValue,labelAddValue) =>{
     const textareaValues = text_array.map(textArea => textArea.value);
       let data = {
         'label_text' : textareaValues, //text label array
         'label_values': val_array,  /// val array
         'is_barcode': barcodeFlag,
         'is_QRcode': qrFlag,
-        'company_name':labelNameValue
+        'company_name':labelNameValue,
+        'company_address':labelAddValue
       }
       // let data={
       //   'label_text': 123
@@ -777,8 +844,9 @@ console.log('After state update - isListOpen:', isListOpen);
     link.href = canvas.toDataURL(); // set the canvas data as link href value
     link.click(); // simulate clicking the link to download the image
     try{
-    const labelNameValue = document.getElementById("label_name").value; 
-    const post_data = jsonData(labelNameValue)//give function call to json data 
+    const labelNameValue = document.getElementById("label_name").value;
+    const labelAddValue = document.getElementById("label_add").value 
+    const post_data = jsonData(labelNameValue,labelAddValue)//give function call to json data 
     //to send post req to generate code
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
      axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
@@ -890,11 +958,25 @@ const drawCanvas = () => {
   context.font = '16px Arial';
   context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
-  const adjustedX = 190 + panOffset.x;
-  const adjustedY = 100 + panOffset.y;
-  context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
+  const adjustedX = 50 + panOffset.x;
+  const adjustedY = 50 + panOffset.y;
+  // context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
+  val_array.forEach(selectedEntityName => {
+    const newY= adjustedY+20;
+    context.fillText(` ${selectedEntityName}`,adjustedX,newY);
+    
+  })
+  context.save();
+  // context.restore();
+  // const adjustedX = 190 + panOffset.x;
+  // const adjustedY = 100 + panOffset.y;
   
-  
+  // // Draw each entity name
+  // elements.forEach(element => {
+  //   context.fillText(` ${element.name}`, adjustedX, adjustedY);
+  //   adjustedY += 20; // Adjust the Y coordinate for the next entity
+  // });
+   
 };
 
 // Call drawCanvas whenever the selected entity name changes
@@ -943,7 +1025,7 @@ useEffect(() => {
           {/* <button onClick={undo}>Undo</button>&emsp; */}
           {/* <button onClick={redo}>Redo</button> */}
           <img width="16" height="16" src="https://img.icons8.com/tiny-color/16/redo.png" alt="redo" onClick={redo} title="Redo"/>
-          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
         </div>
         
         {/* <div className="row shape" style={{ position: "fixed", paddingTop: "1.2cm" }}> */}
@@ -1093,13 +1175,19 @@ useEffect(() => {
         {/* <label htmlFor="text">Text</label> */}
 
         <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" />
-        <hr style={{color:"#fff9f7", width:"590%"}}></hr>
+        <hr style={{color:"#fff9f7", width:"100%"}}></hr>
       </div>
       <div>
-        <label for="label-size"> Label Template Size : </label>
-        <input type="text" id="label-size" name="label-size"/>&emsp;
+        <label for="label-size"> Choose Label Template Size : </label>
+        <select id="label-size" name="label-size" onChange={handleSizeChange} value={selectedSize}>
+        <option value="80x60">80x60</option>
+        <option value="40x40">40x40</option>
+      </select>
+        {/* <input type="text" id="label-size" name="label-size"/>&emsp; */}
         <label for="label_name"> Label Name : </label>
         <input type="text" id="label_name" name="label_name"/>&emsp;
+        <label for="label_add"> Label Address : </label>
+        <input type="text" id="label_add" name="label_add"/>&emsp;
         <button>Barcode Format</button>&emsp;
         <button>QR-code Format</button>
       </div>
@@ -1110,7 +1198,7 @@ useEffect(() => {
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: selectedElement.y1 + panOffset.y - 2,
+            top: selectedElement.y1 + panOffset.y ,
             left: selectedElement.x1 + panOffset.x,
             font: "24px sans-serif",
             margin: 0,
@@ -1130,7 +1218,7 @@ useEffect(() => {
         <section className="drawing-board">
         <div>
           <label><b>Behaviour</b></label>
-          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
 
           <label for="tab-o">
             Tab Order:
@@ -1145,13 +1233,17 @@ useEffect(() => {
             {/* Add a button to delete the selected element */}
             <button onClick={handleDelete}>Delete</button>
           </label>
-          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
           
           <label><b>Misc</b></label>
-          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
 
-          <label for="font">Font Size :
-          <input type="number" id="font" name="font"/></label><br/>
+          <label for="font">Font Size :</label>
+          <input type="number" id="font" name="font"
+          value={fontSize}
+          onChange={handleFontSizeChange}// Call the handler when the input changes
+          />
+          <br/>
 
           <label for="style">Style :
           <input type="text" id="style" name="style"/></label><br/>
@@ -1160,12 +1252,16 @@ useEffect(() => {
           <input type="number" id="H-R" name="H-R"/></label>
           <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
         </div> 
+        
         <div>
         <canvas
           id="canvas"
-          width={window.innerWidth}
+          // width={window.innerWidth}
           ref={canvasRef}
-          height={window.innerHeight}
+          className="canvas_class"
+          // height={window.innerHeight}
+          width={canvasWidth*3.7795275591} 
+          height={canvasHeight*3.7795275591}
           // onMouseDown={handleMouseDown}
           // onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
           // onMouseMove={handleMouseMove}

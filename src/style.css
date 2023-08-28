@@ -243,6 +243,13 @@
 }
 
 
+.canvas_class {
+  backface-visibility: visible;
+  /* height: 750px;
+  width: 1640px; */
+  border: 2px solid rgb(3, 3, 4);
+  
+}
 
  /*
  .tools-board .row{
