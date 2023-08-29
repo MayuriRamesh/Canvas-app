@@ -122,11 +122,9 @@
 .dropdown a:hover {background-color: #ddd;}
 .dropdown #fileInput:hover {background-color: #ddd;}
 
-.show {display: block;}
-
-
-
-
+.show {
+  display: block;
+}
 
 .entity-list {
   position: absolute;

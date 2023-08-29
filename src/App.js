@@ -143,32 +143,7 @@ const getSvgPathFromStroke = stroke => {
 };
 
 
-const drawElement = (context, element) => {
-  switch (element.type) {
-    case "line":
-      context.beginPath();
-      context.moveTo(element.x1, element.y1);
-      context.lineTo(element.x2, element.y2);
-      context.stroke();
-      break;
-    case "rectangle":
-      context.strokeRect(element.x1, element.y1, element.x2 - element.x1, element.y2 - element.y1);
-      console.log("drawwwwwww rect start point x,y",element.x1, element.y1)
-      break;
-    case "pencil":
-      const stroke = getStroke(element.points);
-      const path = new Path2D(getSvgPathFromStroke(stroke));
-      context.fill(path);
-      break;
-    case "text":
-      context.textBaseline = "top";
-      // context.font = "24px sans-serif";
-      context.fillText(element.text, element.x1, element.y1);
-      break;
-    default:
-      throw new Error(`Type not recognised: ${element.type}`);
-  }
-};
+
 
 const adjustmentRequired = type => ["line", "rectangle"].includes(type);
 
@@ -227,14 +202,43 @@ const App = ({ context }) => {
   const [barcodeFlag, setbarcodeFlag] = useState(false);
   const [qrFlag, setqrFlag] = useState(false);
 
-  const defaultCanvasWidth = 100; // Default canvas width in millimeters
-  const defaultCanvasHeight = 80; // Default canvas height in millimeters
+  const defaultCanvasWidth = 340; // Default canvas width in millimeters
+  const defaultCanvasHeight = 152; // Default canvas height in millimeters
   const [canvasWidth, setCanvasWidth] = useState(defaultCanvasWidth);
   const [canvasHeight, setCanvasHeight] = useState(defaultCanvasHeight);
   const [selectedSize, setSelectedSize] = useState(`${defaultCanvasWidth}x${defaultCanvasHeight}`);
   const [fontSize, setFontSize] = useState(24);
-  
 
+//   const [draggedEntity, setDraggedEntity] = useState(null);   //drag-drop entity names
+// const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  
+  const drawElement = (context, element) => {
+    switch (element.type) {
+      case "line":
+        context.beginPath();
+        context.moveTo(element.x1, element.y1);
+        context.lineTo(element.x2, element.y2);
+        context.stroke();
+        break;
+      case "rectangle":
+        context.strokeRect(element.x1, element.y1, element.x2 - element.x1, element.y2 - element.y1);
+        console.log("drawwwwwww rect start point x,y",element.x1, element.y1)
+        break;
+      case "pencil":
+        const stroke = getStroke(element.points);
+        const path = new Path2D(getSvgPathFromStroke(stroke));
+        context.fill(path);
+        break;
+      case "text":
+        context.textBaseline = "top";
+        context.font = `${fontSize}px sans-serif`;
+        context.fillText(element.text, element.x1, element.y1);
+        break;
+      default:
+        throw new Error(`Type not recognised: ${element.type}`);
+    }
+  };
   const handleSizeChange = (event) => {
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
@@ -243,46 +247,15 @@ const App = ({ context }) => {
     setSelectedSize(newSize);
     setCanvasWidth(newWidth);
     setCanvasHeight(newHeight);
-    // Calculate the font size based on the new canvas size
-  // const fontSize = Math.min(newWidth, newHeight) * 0.1; // Adjust the multiplier as needed
-  // const fontSize =Math.min(newWidth / 10, newHeight / 10);
-  // context.font = `${fontSize}px sans-serif`; // Update the font size
+
   };
 
   const handleFontSizeChange = (event) => {
-    
-    const newSize = parseInt(event.target.value, 10);
-    setFontSize(newSize);
-    
-    console.log("********new font size *****",newSize)
-  };
-  // const redrawCanvas = (elements) => {
-  //   const canvas = document.getElementById("canvas");
-  //   const context = canvas.getContext("2d");
-  //   // Clear the canvas
-  //   // context.clearRect(0, 0, canvas.width, canvas.height);
+    const newFontSize = parseInt(event.target.value);
+    setFontSize(newFontSize);
   
-  //   // Draw each element with the new font size
-  //   // elements.forEach(drawElement); // Assume elements contains the elements to draw
-  //   elements.forEach(element => {
-  //        drawElement(context, element);
-  //      });
-  // };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-   // Draw text with updated font size
-    context.font = `${fontSize}px sans-serif`;
-
-    text_array.forEach((element) => {
-      context.fillText(element.text, element.x, element.y);
-    });
-    // context.fillText("Hello, World!", 10, 50);
-    console.log("********new font size useEffect *****",fontSize)
-    // redrawCanvas();
-  }, [fontSize]);
-
+  };
+ 
   const handlebarcodeFlagToggle = () => {
     setbarcodeFlag(!barcodeFlag); // Toggle the flag value
     console.log("barcode flag******",(!barcodeFlag));
@@ -298,65 +271,6 @@ const App = ({ context }) => {
         console.log("Entities updated in useEffect:", entities);
         }, [entities]);
 
-  //   useEffect(() => {
-  //   //function is a callback that is invoked whenever a click event occurs anywhere on the document 
-  //   //(i.e., the entire web page). Its purpose in the given code is to determine whether the click event occurred outside of the entity list
-  //   // (the dropdown) and, if so, close the list.
-  //   const handleDocumentClick = (event) => {
-  //     if (entityListRef.current && !entityListRef.current.contains(event.target)) {
-  //       setIsListOpen(false);
-  //     }
-  //   };
-
-  //   window.addEventListener('click', handleDocumentClick);
-
-  //   return () => {
-  //     window.removeEventListener('click', handleDocumentClick);
-  //   };
-  // }, []); 
-
-//   const connectionOptions = {
-//     "force new connection": true,
-//     "reconnectionAttempts": "Infinity",
-//     "reconnection": false,
-//     "timeout": 10000,
-//     "transports": ["polling"]
-// };
-
-  // const handleInputTextArrayChange = (event) => {
-  //   // const inputValue = event.target.value;
-  //   settext_array= event.target.value;
-  // };
-
-  // const handleInputEntityArrayChange = (event) => {
-  //   // const inputValue = event.target.value;
-  //   settext_array= event.target.value;
-  // };
-  
-  
-  // useEffect(() => {
-  //   const handleDocumentClick = (event) => {
-  //     // Get the canvas element
-  //     const canvas = canvasRef.current;
-  
-  //     // Check if the clicked target is outside the entity list and the canvas
-  //     if (
-  //       entityListRef.current &&
-  //       !entityListRef.current.contains(event.target) &&
-  //       !canvas.contains(event.target)
-  //     ) {
-  //       setIsListOpen(false);
-  //     }
-  //   };
-  
-  //   window.addEventListener('click', handleDocumentClick);
-  
-  //   return () => {
-  //     window.removeEventListener('click', handleDocumentClick);
-  //   };
-  // }, []);
-  
-  
 
   const handleDBImageClick = () => {
     console.log('handleImageClick triggered');
@@ -367,8 +281,8 @@ const App = ({ context }) => {
     axios.get('http://127.0.0.1:4000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
-console.log("resssssssssssponseeee",response)
-console.log("resssssssssssponseeee 2",responseData)
+  console.log("resssssssssssponseeee",response)
+  console.log("resssssssssssponseeee 2",responseData)
     // Assuming the response is an array of entities
     if (Array.isArray(responseData)) {
       setEntities(responseData);
@@ -512,21 +426,40 @@ console.log('After state update - isListOpen:', isListOpen);
  /***************************************************************************** */ 
 
   useLayoutEffect(() => {
-    const canvas = document.getElementById("canvas");
-    const context = canvas.getContext("2d");
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    console.log("*****inside the useLayoutEffect*******")
-    drawCanvas();
-    context.save();
-    context.translate(panOffset.x, panOffset.y);
+  //   const canvas = document.getElementById("canvas");
+  //   const context = canvas.getContext("2d");
+  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //   console.log("*****inside the useLayoutEffect*******")
+  //   drawCanvas();
+  //   context.save();
+  //   context.translate(panOffset.x, panOffset.y);
 
-    elements.forEach(element => {
-      if (action === "writing" && selectedElement.id === element.id) return;
-      drawElement(context, element);
+  //   elements.forEach(element => {
+  //     if (action === "writing" && selectedElement.id === element.id) return;
+  //     drawElement(context, element);
      
-    });
-    context.restore();
-  }, [elements, action, selectedElement, panOffset]);
+  //   });
+  //   context.restore();
+  // }, [elements, action, selectedElement, panOffset]);
+  const canvas = document.getElementById("canvas");
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  console.log("*****inside the useLayoutEffect*******")
+  drawCanvas();
+  context.save();
+  context.translate(panOffset.x, panOffset.y);
+
+  elements.forEach((element) => {
+    if (element.type === "text" && element.fontSize) {
+      context.font = `${element.fontSize}px sans-serif`;
+    } else {
+      context.font = `${fontSize}px sans-serif`;
+    }
+    drawElement(context, element);
+  });
+  context.restore();
+}, [elements, action, panOffset]);
+
 
   useEffect(() => {
     const undoRedoFunction = event => {
@@ -560,16 +493,24 @@ console.log('After state update - isListOpen:', isListOpen);
   }, []);
 
   useEffect(() => {
-    const textArea = textAreaRef.current;
-    if (action === "writing") {
+  //   const textArea = textAreaRef.current;
+  //   if (action === "writing") {
+  //     setTimeout(() => {
+  //       textArea.focus();
+  //       textArea.value = selectedElement.text;  
+  //     }, 0);
+  //     console.log("prrrrrrrrrrrrrrrint",textArea[0]);
+  //     text_array.push(textArea)
+  //   }
+  // }, [action, selectedElement]);
+
+  const textArea = textAreaRef.current;
+    if (action === "writing" && selectedElement) {
       setTimeout(() => {
         textArea.focus();
-        textArea.value = selectedElement.text;  //when we click on text to edit, the existing text will show as it is to edit.
-        // console.log("prrrrrrrrrrrrrrrint",textArea[0]);
-        // text_array.push(textArea)
+        textArea.value = selectedElement.text;
       }, 0);
-      console.log("prrrrrrrrrrrrrrrint",textArea[0]);
-      text_array.push(textArea)
+      text_array.push(textArea);
     }
   }, [action, selectedElement]);
 
@@ -656,6 +597,7 @@ console.log('After state update - isListOpen:', isListOpen);
     const canvasRect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - canvasRect.left;
     const mouseY = event.clientY - canvasRect.top;
+    
 
     // Check if the mouse is over the entity name
     const entityNameRect = {
@@ -686,9 +628,8 @@ console.log('After state update - isListOpen:', isListOpen);
           const offsetX = clientX - element.x1;
           const offsetY = clientY - element.y1;
           setSelectedElement({ ...element, offsetX, offsetY });
-        }
+        }  
         setElements(prevState => prevState);
-
         if (element.position === "inside") {
           setAction("moving");
         } else {
@@ -831,9 +772,7 @@ console.log('After state update - isListOpen:', isListOpen);
         'company_name':labelNameValue,
         'company_address':labelAddValue
       }
-      // let data={
-      //   'label_text': 123
-      // }
+
       return JSON.stringify(data)
   }
 
@@ -946,15 +885,6 @@ const drawCanvas = () => {
   const canvas = canvasRef.current;
   const context = canvas.getContext('2d');
 
-  // Clear the canvas
-  // context.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw your other canvas content here
-  // elements.forEach(element => {
-  //   drawElement(context, element);
-  // });
-  // Draw the selected entity name
-
   context.font = '16px Arial';
   context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
@@ -967,16 +897,7 @@ const drawCanvas = () => {
     
   })
   context.save();
-  // context.restore();
-  // const adjustedX = 190 + panOffset.x;
-  // const adjustedY = 100 + panOffset.y;
   
-  // // Draw each entity name
-  // elements.forEach(element => {
-  //   context.fillText(` ${element.name}`, adjustedX, adjustedY);
-  //   adjustedY += 20; // Adjust the Y coordinate for the next entity
-  // });
-   
 };
 
 // Call drawCanvas whenever the selected entity name changes
@@ -1064,16 +985,6 @@ useEffect(() => {
               
               {entities.length> 0 && (
                 <ul>
-                                  
-                    {/* {(() => {
-                    const listItems = [];
-                    for (let i = 0; i < entities.length; i++) {
-                      const entity = entities[i];
-                      listItems.push(<li key={entity.id}>{entity.name}</li>);
-                    }
-                    return listItems;
-                  })()} */}
-
                   {entities.map(entity => (
                           <li key={entity.id} onClick={() => handleEntityClick(entity.name)} className={selectedEntityName === entity.name ? 'selected' : ''}>
                             {entity.name}
@@ -1180,6 +1091,7 @@ useEffect(() => {
       <div>
         <label for="label-size"> Choose Label Template Size : </label>
         <select id="label-size" name="label-size" onChange={handleSizeChange} value={selectedSize}>
+        <option value="340x152">full size</option>
         <option value="80x60">80x60</option>
         <option value="40x40">40x40</option>
       </select>
@@ -1200,7 +1112,7 @@ useEffect(() => {
             position: "fixed",
             top: selectedElement.y1 + panOffset.y ,
             left: selectedElement.x1 + panOffset.x,
-            font: "24px sans-serif",
+            font: `${selectedElement.fontSize ||fontSize}px sans-serif`, // Use dynamic font size
             margin: 0,
             padding: 0,
             border: 0,
@@ -1241,8 +1153,8 @@ useEffect(() => {
           <label for="font">Font Size :</label>
           <input type="number" id="font" name="font"
           value={fontSize}
-          onChange={handleFontSizeChange}// Call the handler when the input changes
-          />
+          onChange={handleFontSizeChange}
+         />
           <br/>
 
           <label for="style">Style :
