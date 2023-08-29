@@ -239,6 +239,49 @@ const App = ({ context }) => {
         throw new Error(`Type not recognised: ${element.type}`);
     }
   };
+  const [image, setImage] = useState(null);
+  
+  const handleImageUpload = (event) => {
+    const uploadedImage = event.target.files[0];
+    setImage(uploadedImage);
+  };
+  
+   useEffect(() => {
+     uploadImage();
+   });
+
+
+  const uploadImage=() => {
+    console.log("Inside uploadImage()");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+  
+    // Clear the canvas
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+    // Draw the uploaded image on the canvas when the image state changes
+    //drawCanvas();
+    //ctx.save();
+    if (image) {
+      const img = new Image();
+      img.src = URL.createObjectURL(image);
+      img.onload = () => {
+        const logoSize = 64; // Size of the logo you want
+        const aspectRatio = img.width / img.height;
+        const targetWidth = logoSize;
+        const targetHeight = targetWidth / aspectRatio;
+  
+        const x = (canvas.width - targetWidth) / 2; // Center the logo horizontally
+        const y = (canvas.height - targetHeight) / 2; // Center the logo vertically
+        //drawCanvas();
+        ctx.drawImage(img, 10, 10, targetWidth, targetHeight);
+        //drawCanvas();
+      };
+    }
+    
+    //ctx.restore();
+  }
+  
   const handleSizeChange = (event) => {
     const canvas = document.getElementById("canvas");
     const context = canvas.getContext("2d");
@@ -426,21 +469,7 @@ console.log('After state update - isListOpen:', isListOpen);
  /***************************************************************************** */ 
 
   useLayoutEffect(() => {
-  //   const canvas = document.getElementById("canvas");
-  //   const context = canvas.getContext("2d");
-  //   context.clearRect(0, 0, canvas.width, canvas.height);
-  //   console.log("*****inside the useLayoutEffect*******")
-  //   drawCanvas();
-  //   context.save();
-  //   context.translate(panOffset.x, panOffset.y);
 
-  //   elements.forEach(element => {
-  //     if (action === "writing" && selectedElement.id === element.id) return;
-  //     drawElement(context, element);
-     
-  //   });
-  //   context.restore();
-  // }, [elements, action, selectedElement, panOffset]);
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -579,6 +608,7 @@ console.log('After state update - isListOpen:', isListOpen);
   };
 
   const handleMouseDown = (event, canvasContext) => {
+    canvasContext.save();
     if (action === "writing") return;
 
     const { clientX, clientY } = getMouseCoordinates(event);
@@ -1084,7 +1114,11 @@ useEffect(() => {
         <input type="radio" id="text" checked={tool === "text"} onChange={() => setTool("text")} />
         <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color"/>&emsp;&emsp;&nbsp;
         {/* <label htmlFor="text">Text</label> */}
-
+        <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+      />
         <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" />
         <hr style={{color:"#fff9f7", width:"100%"}}></hr>
       </div>
