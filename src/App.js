@@ -209,9 +209,67 @@ const App = ({ context }) => {
   const [selectedSize, setSelectedSize] = useState(`${defaultCanvasWidth}x${defaultCanvasHeight}`);
   const [fontSize, setFontSize] = useState(24);
 
-//   const [draggedEntity, setDraggedEntity] = useState(null);   //drag-drop entity names
-// const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  
+ 
+ const [draggedName, setDraggedName] = useState('');
+ const [draggedPosition, setDraggedPosition] = useState({ x: 0, y: 0 });
+
+
+//  const handleNameClick = (entityName) => {
+//   // setSelectedEntityName(entityName);
+//   if (draggedName === entityName) {
+//     setDraggedName('');
+//     setDraggedPosition({ x: 0, y: 0 });
+//   } else {
+//     setDraggedName(entityName);
+//     setDraggedPosition({ x: 0, y: 0 });
+//   }
+// };
+
+// const handleNameDoubleClick = (entityName) => {
+//   setDraggedName(entityName);
+// };
+
+// const handleDragStart = (event, entityName) => {
+//   event.dataTransfer.setData('text/plain', entityName);
+// };
+
+// const handleDragEnd = () => {
+//   setDraggedName('');
+//   setDraggedPosition({ x: 0, y: 0 });
+// };
+
+// const handleDrop = (event) => {
+//   event.preventDefault();
+//   const canvas = document.getElementById('canvas');
+//   const rect = canvas.getBoundingClientRect();
+//   const x = event.clientX - rect.left;
+//   const y = event.clientY - rect.top;
+
+//   setDraggedPosition({ x, y });
+// };
+
+// const handleCanvasMouseMove = (event) => {
+//   if (draggedName) {
+//     setDraggedPosition({ x: 0, y: 0 });
+//     const canvas = canvasRef.current;
+//     const context = canvas.getContext('2d');
+//     // context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+//     const x = event.nativeEvent.offsetX;
+//     const y = event.nativeEvent.offsetY;
+
+//     context.fillText(draggedName, x, y);
+//   }
+// };
+
+// const handleCanvasMouseUp = () => {
+//   if (draggedName) {
+//     setDraggedName('');
+//     const canvas = canvasRef.current;
+//     const context = canvas.getContext('2d');
+//     context.clearRect(0, 0, canvasWidth, canvasHeight);
+//   }
+// };
   
   const drawElement = (context, element) => {
     switch (element.type) {
@@ -260,7 +318,7 @@ const App = ({ context }) => {
     //ctx.clearRect(0, 0, canvas.width, canvas.height);
   
     // Draw the uploaded image on the canvas when the image state changes
-    //drawCanvas();
+    
     //ctx.save();
     if (image) {
       const img = new Image();
@@ -273,9 +331,9 @@ const App = ({ context }) => {
   
         const x = (canvas.width - targetWidth) / 2; // Center the logo horizontally
         const y = (canvas.height - targetHeight) / 2; // Center the logo vertically
-        //drawCanvas();
+       
         ctx.drawImage(img, 10, 10, targetWidth, targetHeight);
-        //drawCanvas();
+       
       };
     }
     
@@ -310,9 +368,9 @@ const App = ({ context }) => {
     
   };
   
-  useEffect(() => {
-        console.log("Entities updated in useEffect:", entities);
-        }, [entities]);
+  // useEffect(() => {
+  //       console.log("Entities updated in useEffect:", entities);
+  //       }, [entities]);
 
 
   const handleDBImageClick = () => {
@@ -348,14 +406,17 @@ console.log('isListOpen:', isListOpen);
 console.log('After state update - isListOpen:', isListOpen);
   };
 
-
+  
   const handleEntityClick = (entityName) => {
     setSelectedEntityName(entityName);
-    setIsListOpen(false);
-    console.log("selecteddddddddddddd nameeeeeeee",entityName);
+    // setIsListOpen(false);
+    console.log("********selected Entity name*******",entityName);
     val_array.push(entityName)
-    const entityPosition = { x: 50, y: 50 }; // Replace with actual coordinates
+    let currentY = 50;
+    const entityPosition = { x: 50, y: currentY}; // Replace with actual coordinates
   setSelectedEntityPosition(entityPosition);
+  currentY += 20;
+  console.log("position......................",currentY);
   };
 
   const handlewtEntityClick = (entityWt) => {
@@ -363,8 +424,8 @@ console.log('After state update - isListOpen:', isListOpen);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityWt);
     val_array.push(entityWt)
-    const entityPosition = { x: 120, y: 100 }; // Replace with actual coordinates
-  setSelectedEntityPosition(entityPosition);
+  //   const entityPosition = { x: 120, y: 100 }; // Replace with actual coordinates
+  // setSelectedEntityPosition(entityPosition);
   };
 
   const handleTDEntityClick = (entityTd) => {
@@ -372,8 +433,8 @@ console.log('After state update - isListOpen:', isListOpen);
     setIsListOpen(false);
     console.log("selecteddddddddddddd nameeeeeeee",entityTd);
     val_array.push(entityTd)
-    const entityPosition = { x: 140, y: 100 }; // Replace with actual coordinates
-  setSelectedEntityPosition(entityPosition);
+  //   const entityPosition = { x: 140, y: 100 }; // Replace with actual coordinates
+  // setSelectedEntityPosition(entityPosition);
   };
 
   const handleWeightDBImageClick = () => {
@@ -474,7 +535,8 @@ console.log('After state update - isListOpen:', isListOpen);
   const context = canvas.getContext("2d");
   context.clearRect(0, 0, canvas.width, canvas.height);
   console.log("*****inside the useLayoutEffect*******")
-  drawCanvas();
+   drawCanvas();
+  
   context.save();
   context.translate(panOffset.x, panOffset.y);
 
@@ -610,56 +672,40 @@ console.log('After state update - isListOpen:', isListOpen);
   const handleMouseDown = (event, canvasContext) => {
     canvasContext.save();
     if (action === "writing") return;
-
-    const { clientX, clientY } = getMouseCoordinates(event);
+    /** extracts the clientX and clientY properties from the result of calling the getMouseCoordinates function with the event parameter.
+     *  These properties represent the coordinates of the mouse pointer within the client area of the browser window. */
+    const { clientX, clientY } = getMouseCoordinates(event); 
 
     if (event.button === 1 || pressedKeys.has(" ")) {
+      /** checks if the mouse button pressed during the event is the middle button (button 1) or if the space key is pressed. 
+       * If either of these conditions is true, the action is set to "panning". */
       setAction("panning");
-      setStartPanMousePosition({ x: clientX, y: clientY });
+      setStartPanMousePosition({ x: clientX, y: clientY }); //and the starting mouse position is stored for later use in panning the canvas
       return;
     }
 
     if (tool === "selection") {
       const element = getElementAtPosition(clientX, clientY, elements);
-/**************************************************************************************************************************** */
-          // Check if the mouse is within the bounding box of the entity name
-    const canvas = canvasRef.current;
-    const canvasRect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - canvasRect.left;
-    const mouseY = event.clientY - canvasRect.top;
-    
+/***************************************expected to return an element that exists at the specified position.************************************************************************************* */
 
-    // Check if the mouse is over the entity name
-    const entityNameRect = {
-      x: 190 + panOffset.x,
-      y: 100 + panOffset.y,
-      width: canvasContext.measureText(selectedEntityName).width,
-      height: 16, // Adjust this value as needed
-    };
-
-      if (
-      mouseX >= entityNameRect.x &&
-      mouseX <= entityNameRect.x + entityNameRect.width &&
-      mouseY >= entityNameRect.y &&
-      mouseY <= entityNameRect.y + entityNameRect.height
-      ) {
-        // Start the drag operation for the entity name
-        canvas.style.cursor = "move"; // Change the cursor to 'move'
-        setAction("dragging");
-        setStartPanMousePosition({ x: clientX, y: clientY });
-      }
 /******************************************************************************************************************** */
-      if (element) {
+      if (element) {                /** checks if an element is returned. If an element exists at the specified position, it continues to the next steps. */
         if (element.type === "pencil") {
+          /**calculates the x and y offsets between the clientX/clientY and the points of the element. 
+           * These offsets are then stored in the state using the setSelectedElement function. 
+           * Essentially, this is to be prepared for moving or editing a free-form drawing. */
           const xOffsets = element.points.map(point => clientX - point.x);
           const yOffsets = element.points.map(point => clientY - point.y);
           setSelectedElement({ ...element, xOffsets, yOffsets });
         } else {
+          /**is not "pencil",  calculates the offset between the clientX/clientY and the starting coordinates of the element. 
+           * This offset is then stored in the state using the setSelectedElement function. 
+           * This can be used for moving or resizing other types of elements. */
           const offsetX = clientX - element.x1;
           const offsetY = clientY - element.y1;
           setSelectedElement({ ...element, offsetX, offsetY });
         }  
-        setElements(prevState => prevState);
+        // setElements(prevState => prevState);
         if (element.position === "inside") {
           setAction("moving");
         } else {
@@ -667,6 +713,9 @@ console.log('After state update - isListOpen:', isListOpen);
         }
       }
     } else {
+      /**a different tool is active, so generates a new element using the createElement function, 
+       * assigns it a unique ID, and sets its initial position to the clientX and clientY coordinates. 
+       * This new element is then added to the elements state array using the setElements function. */
       const id = elements.length;
       const element = createElement(id, clientX, clientY, clientX, clientY, tool);
       setElements(prevState => [...prevState, element]);
@@ -680,6 +729,25 @@ console.log('After state update - isListOpen:', isListOpen);
   const handleMouseMove = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
 
+    // if (draggedName) {
+    //   setDraggedName('');
+    //   setDraggedPosition({ x: 0, y: 0 }); 
+    //   const canvas = canvasRef.current;
+    //   const context = canvas.getContext('2d');
+    //   // context.clearRect(0, 0, canvasWidth, canvasHeight);
+  
+    //   const x = event.nativeEvent.offsetX;
+    //   const y = event.nativeEvent.offsetY;
+    //   const adjustedX = 50 + panOffset.x;
+    //   const adjustedY = 50 + panOffset.y;
+    //   val_array.forEach(selectedEntityName => {
+    //     const newY= adjustedY+20;
+    //     context.fillText(` ${selectedEntityName}`,adjustedX,newY);
+        
+    //   })
+    //   context.fillText(draggedName, x, y);
+     
+    // }
     if (action === "panning") {
       const deltaX = clientX -startPanMousePosition.x;
       const deltaY = clientY -startPanMousePosition.y ;
@@ -730,18 +798,17 @@ console.log('After state update - isListOpen:', isListOpen);
     }
     /******************************************************************************************* */
     // If dragging the entity name
-  if (action === "dragging") {
-    const deltaX = clientX - startPanMousePosition.x;
-    const deltaY = clientY - startPanMousePosition.y;
-    setStartPanMousePosition({ x: clientX, y: clientY });
+    // if (draggedEntity) {
+    //   const mouseX = event.nativeEvent.offsetX;
+    //   const mouseY = event.nativeEvent.offsetY;
+    //   setSelectedEntityPosition({
+    //     x: mouseX - dragOffset.x,
+    //     y: mouseY - dragOffset.y,
+    //   });
 
     // Update the entity name position
-    setPanOffset(prevPanOffset => ({
-      x: prevPanOffset.x + deltaX,
-      y: prevPanOffset.y + deltaY,
-    }));
-    return;
-  } /***************************************************************************************** */
+    // drawCanvas(); // Update canvas on mouse move
+  // } /***************************************************************************************** */
   };
 
 
@@ -766,14 +833,29 @@ console.log('After state update - isListOpen:', isListOpen);
         updateElement(id, x1, y1, x2, y2, type);
       }
     }
+    // if (draggedName) {
+      
+    //   // context.clearRect(0, 0, canvasWidth, canvasHeight);
+    //   const x = event.nativeEvent.offsetX;
+    //   const y = event.nativeEvent.offsetY;
+    //   setDraggedName('');
+    //   setDraggedPosition({ x: 0, y: 0 });
 
+    //   const canvas = canvasRef.current;
+    //   const context = canvas.getContext('2d');
+    //   // context.fillText(draggedName, x, y);
+    //   entities.forEach((entity) => {
+    //     context.fillText(entity, x, y);
+    //     y += 20; // Adjust the y-coordinate for the next name
+    //   });
+    // }
     if (action === "writing") return;
 
     // If dragging the entity name
-  if (action === "dragging") {
-    setAction("none");
-    return;
-  }
+  // if (action === "dragging") {
+  //   setAction("none");
+  //   return;
+  // }
 
     setAction("none");
     setSelectedElement(null);
@@ -798,7 +880,7 @@ console.log('After state update - isListOpen:', isListOpen);
         'label_text' : textareaValues, //text label array
         'label_values': val_array,  /// val array
         'is_barcode': barcodeFlag,
-        'is_QRcode': qrFlag,
+        'is_qrcode': qrFlag,
         'company_name':labelNameValue,
         'company_address':labelAddValue
       }
@@ -812,6 +894,7 @@ console.log('After state update - isListOpen:', isListOpen);
     link.download = `${Date.now()}.jpg`; // set the file name for the downloaded image
     link.href = canvas.toDataURL(); // set the canvas data as link href value
     link.click(); // simulate clicking the link to download the image
+    console.log("*************inside handleSaveImage*********");
     try{
     const labelNameValue = document.getElementById("label_name").value;
     const labelAddValue = document.getElementById("label_add").value 
@@ -918,19 +1001,19 @@ const drawCanvas = () => {
   context.font = '16px Arial';
   context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
-  const adjustedX = 50 + panOffset.x;
-  const adjustedY = 50 + panOffset.y;
+  const adjustedX = 240 + panOffset.x;
+  let adjustedY = 50 + panOffset.y;
   // context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
   val_array.forEach(selectedEntityName => {
-    const newY= adjustedY+20;
-    context.fillText(` ${selectedEntityName}`,adjustedX,newY);
+    adjustedY+=50
+    context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
     
   })
   context.save();
   
 };
 
-// Call drawCanvas whenever the selected entity name changes
+//Call drawCanvas whenever the selected entity name changes
 useEffect(() => {
   
   drawCanvas();
@@ -1021,9 +1104,10 @@ useEffect(() => {
                           </li>
                         ))}
                  
-                </ul>
-              )
-              }
+                 </ul>
+                  )
+                  }
+              
             </div>
          
             
@@ -1112,27 +1196,29 @@ useEffect(() => {
         {/* <label htmlFor="pencil">Pencil</label>&emsp; */}
         
         <input type="radio" id="text" checked={tool === "text"} onChange={() => setTool("text")} />
-        <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color"/>&emsp;&emsp;&nbsp;
+        <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color" />&emsp;&emsp;&nbsp;
         {/* <label htmlFor="text">Text</label> */}
-        <input
+        {/* <input
         type="file"
         accept="image/*"
         onChange={handleImageUpload}
-      />
-        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" />
+      /> */}
+        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" type="file"
+        accept="image/*"
+        onClick={handleImageUpload}/>
         <hr style={{color:"#fff9f7", width:"100%"}}></hr>
       </div>
       <div>
-        <label for="label-size"> Choose Label Template Size : </label>
+        <label htmlFor="label-size"> Choose Label Template Size : </label>
         <select id="label-size" name="label-size" onChange={handleSizeChange} value={selectedSize}>
         <option value="340x152">full size</option>
         <option value="80x60">80x60</option>
         <option value="40x40">40x40</option>
       </select>
         {/* <input type="text" id="label-size" name="label-size"/>&emsp; */}
-        <label for="label_name"> Label Name : </label>
+        <label htmlFor="label_name"> Label Name : </label>
         <input type="text" id="label_name" name="label_name"/>&emsp;
-        <label for="label_add"> Label Address : </label>
+        <label htmlFor="label_add"> Label Address : </label>
         <input type="text" id="label_add" name="label_add"/>&emsp;
         <button>Barcode Format</button>&emsp;
         <button>QR-code Format</button>
@@ -1166,7 +1252,7 @@ useEffect(() => {
           <label><b>Behaviour</b></label>
           <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
 
-          <label for="tab-o">
+          <label htmlFor="tab-o">
             Tab Order:
              <input
                 id="tab-o"
@@ -1184,17 +1270,17 @@ useEffect(() => {
           <label><b>Misc</b></label>
           <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
 
-          <label for="font">Font Size :</label>
+          <label htmlFor="font">Font Size :</label>
           <input type="number" id="font" name="font"
           value={fontSize}
           onChange={handleFontSizeChange}
          />
           <br/>
 
-          <label for="style">Style :
+          <label htmlFor="style">Style :
           <input type="text" id="style" name="style"/></label><br/>
 
-          <label for="H-R">Height-Ratio :
+          <label htmlFor="H-R">Height-Ratio :
           <input type="number" id="H-R" name="H-R"/></label>
           <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
         </div> 
@@ -1240,10 +1326,21 @@ useEffect(() => {
             }
         
             handleMouseMove(event);
+            // handleCanvasMouseMove();
           }}
           onMouseUp={handleMouseUp}
+        //   onMouseUp={event => {handleMouseUp(event);
+        //     handleCanvasMouseUp();
+        //   }
+        // }
+
+          // onDragOver={(e) => e.preventDefault()}
+          // onDrop={(e) => handleDrop(e)}
+          // onMouseMove={handleCanvasMouseMove}
+          // onMouseUp={handleCanvasMouseUp}
          
         >
+
    
         </canvas>
         </div>
