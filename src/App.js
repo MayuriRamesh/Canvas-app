@@ -379,7 +379,7 @@ const App = ({ context }) => {
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_labels')
+    axios.get('http://192.168.63.229:5000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
   console.log("resssssssssssponseeee",response)
@@ -443,7 +443,7 @@ console.log('After state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_units')
+    axios.get('http://192.168.63.229:5000/select_units')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -478,7 +478,7 @@ console.log('After state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_date_time')
+    axios.get('http://192.168.63.229:5000/select_date_time')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -901,7 +901,7 @@ console.log('After state update - isListOpen:', isListOpen);
     const post_data = jsonData(labelNameValue,labelAddValue)//give function call to json data 
     //to send post req to generate code
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
-     axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
+     axios.post('http://192.168.63.229:5000/generate_zpl',post_data,{
       headers: {
         'Content-Type': 'application/json'
       }
