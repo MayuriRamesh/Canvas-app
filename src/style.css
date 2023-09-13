@@ -1,430 +1,269 @@
- /* Import Google font - Poppins */
- @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
- /**{
-   margin: 0;
-   padding: 0;
-   box-sizing: border-box;
-   font-family: 'Poppins', sans-serif;
- }*/
- body{
-   /* display: flex; */
-   /* align-items: center;
-   justify-content: center; */
-   /* min-height: 100vh;
-   background: #98d4db; */
-    
- }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
- .dialog {
-  position: fixed;
-top: 25%;
-  left: 55%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  padding: 8px;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+body{
+  /* display: flex; */
+  /* align-items: center;
+  justify-content: center; */
+  /* min-height: 100vh;
+  background: #98d4db; */
+   
 }
-  .container{
-   display: flex;
-   
-   /* width: 100%; */
-    gap: 4px; 
-    padding: 10px; 
-   max-width: 200%;
-   /* padding-bottom: 1cm; */
-   height:97vh;
-   position: fixed;
-   z-index: 2;
-   flex-direction: column;
-   /* flex-wrap: wrap; */
+
+.dialog {
+ position: fixed;
+ top: 25%;
+ left: 55%;
+ transform: translate(-50%, -50%);
+ background-color: white;
+ padding: 8px;
+ border: 1px solid #ccc;
+ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+ z-index: 1000;
+}
+.container{
+ display: flex;
   
- }
- section{
-   background: #fff;
-   border-radius: 7px;
-   /* width: 267%; */
-   /* height:95vh; */
-   
- }
+  /* width: 100%; */
+ gap: 4px; 
+ padding: 10px; 
+ max-width: 200%;
+  /* padding-bottom: 1cm; */
+ height:97vh;
+ position: fixed;
+ z-index: 2;
+ flex-direction: column;
+  /* flex-wrap: wrap; */
  
- .drawing-board{
-   /* flex-direction: row; */
-   /* flex: 100%; */
-   /* padding: 10px 5px 5px; */
-   
-   gap: 3px;
-   display: flex;
-   /* flex-wrap: wrap; */
-   background: #98d4db;
-   height:95vh;
-   
-   
- }
- .drawing-board > div:first-child {
-  flex: 2 ; /* Each div will take an equal amount of space */
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-radius: 4px;
-  padding-left: 2px;
+}
+
+section{
+ background: #fff;
+ border-radius: 7px;
+  /* width: 267%; */
+  /* height:95vh; */
   
 }
+
+.drawing-board{
+  /* flex-direction: row; */
+  /* flex: 100%; */
+  /* padding: 10px 5px 5px; */
+  
+ gap: 3px;
+ display: flex;
+  /* flex-wrap: wrap; */
+ background: #98d4db;
+ height:95vh;
+  
+}
+
+.drawing-board > div:first-child {
+ flex: 2 ; /* Each div will take an equal amount of space */
+ display: flex;
+ flex-direction: column;
+ background-color: white;
+ border-radius: 4px;
+ padding-left: 2px;
+ 
+}
+
 .drawing-board > div:last-child {
-  flex: 9; /* This div will take 100% (twice the width) of the available width */
-  background-color: white;
-  border-radius: 4px;
+ flex: 9; /* This div will take 100% (twice the width) of the available width */
+ background-color: white;
+ border-radius: 4px;
 }
 
 .drawing-board > div > div {
-  flex: 2; /* This will make each child div take 50% of the height of its parent div */
-  /* Add any additional styling for the child divs here */
+ flex: 2; /* This will make each child div take 50% of the height of its parent div */
+ /* Add any additional styling for the child divs here */
 }
- .drawing-board canvas{
-  background: transparent;
- }
- .tools-board{
-   
-   width: 100%; 
-   padding: 4px 5px ;
-   
-   /* position: fixed; */
- } 
 
- input [type="number"]{
-  width: 30px; /* Set the width of the input box */
-  height: 18px; /* Set the height of the input box */
-  /* Add any additional styling as needed */
+.drawing-board canvas{
+ background: transparent;
+}
+
+.tools-board{
+ width: 100%; 
+ padding: 4px 5px ;
+  /* position: fixed; */
+} 
+
+input [type="number"]{
+ width: 30px; /* Set the width of the input box */
+ height: 18px; /* Set the height of the input box */
+ /* Add any additional styling as needed */
 }
 
 #tab-o{
-  width: 80px; /* Set the width of the input box */
-  height: 20px;
+ width: 80px; /* Set the width of the input box */
+ height: 20px;
 }
 
 
 .dropbtn {
-  /* background-color: #3498DB; */
-  color: rgb(16, 16, 16);
-  padding: 6px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
+ /* background-color: #3498DB; */
+ color: rgb(16, 16, 16);
+ padding: 6px;
+ font-size: 16px;
+ border: none;
+ cursor: pointer;
 }
 
 .dropbtn:hover, .dropbtn:focus {
-  background-color: #bad4e6;
+ background-color: #bad4e6;
 }
 
 .dropdown {
-  position: relative;
-  display: inline-block;
+ position: relative;
+ display: inline-block;
 }
 
 .dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f1f1f1;
-  min-width: 120px;
-  overflow: auto;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+ display: none;
+ position: absolute;
+ background-color: #f1f1f1;
+ min-width: 120px;
+ overflow: auto;
+ box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+ z-index: 1;
 }
 
 .dropdown-content a {
-  color: black;
-  padding: 6px 10px;
-  text-decoration: none;
-  display: block;
+ color: black;
+ padding: 6px 10px;
+ text-decoration: none;
+ display: block;
 }
 .dropdown a:hover {background-color: #ddd;}
 .dropdown #fileInput:hover {background-color: #ddd;}
 
 .show {
-  display: block;
+ display: block;
 }
 
 .entity-list {
-  position: absolute;
-  top: 95px;
-  left: 230px;
-  background-color: white;
-  
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 3px;
-  z-index: 1;
+ position: absolute;
+ top: 95px;
+ left: 230px;
+ background-color: white;
+ 
+ border: 1px solid #ccc;
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+ padding: 3px;
+ z-index: 1;
 }
 
 .entity-list ul {
-  list-style: none;
-  color: black;
-  padding: 0;
-  margin: 0;
-
-
+ list-style: none;
+ color: black;
+ padding: 0;
+ margin: 0;
 }
 
 .entity-list ul li {
-  /* padding: 4px;
-  cursor: pointer;
-  color: black; */
-  
-  color: black;
-  padding: 5px 6px;
-  cursor: pointer;
-  text-decoration: none;
-  display: block;
+ /* padding: 4px;
+ cursor: pointer;
+ color: black; */
+ 
+ color: black;
+ padding: 5px 6px;
+ cursor: pointer;
+ text-decoration: none;
+ display: block;
 }
 
 .entity-list ul li:hover {
-  background-color: #f1f1f1;
+ background-color: #f1f1f1;
 }
 
 
 
 .wt-entity-list {
-  position: absolute;
-  top: 95px;
-  left: 280px;
-  background-color: white;
-  
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 3px;
-  z-index: 1;
+ position: absolute;
+ top: 95px;
+ left: 280px;
+ background-color: white;
+ 
+ border: 1px solid #ccc;
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+ padding: 3px;
+ z-index: 1;
 }
 
 .wt-entity-list ul {
-  list-style: none;
-  color: black;
-  padding: 0;
-  margin: 0;
+ list-style: none;
+ color: black;
+ padding: 0;
+ margin: 0;
 
 
 }
 
 .wt-entity-list ul li {
-  /* padding: 4px;
-  cursor: pointer;
-  color: black; */
-  
-  color: black;
-  /* padding: 5px 6px; */
-  cursor: pointer;
-  text-decoration: none;
-  display: block;
+ /* padding: 4px;
+ cursor: pointer;
+ color: black; */
+ 
+ color: black;
+ /* padding: 5px 6px; */
+ cursor: pointer;
+ text-decoration: none;
+ display: block;
 }
 
 .wt-entity-list ul li:hover {
-  background-color: #f1f1f1;
+ background-color: #f1f1f1;
 }
 
 
 .tm-entity-list {
-  position: absolute;
-  top: 95px;
-  left: 330px;
-  background-color: white;
-  
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 3px;
-  z-index: 1;
+ position: absolute;
+ top: 95px;
+ left: 330px;
+ background-color: white;
+ 
+ border: 1px solid #ccc;
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+ padding: 3px;
+ z-index: 1;
 }
 
 .tm-entity-list ul {
-  list-style: none;
-  color: black;
-  padding: 0;
-  margin: 0;
-
-
+ list-style: none;
+ color: black;
+ padding: 0;
+ margin: 0;
 } 
 
 .tm-entity-list ul li {
- 
-  color: black; 
-  cursor: pointer;
-  text-decoration: none;
-  display: block;
+ color: black; 
+ cursor: pointer;
+ text-decoration: none;
+ display: block;
 }
 
 .tm-entity-list ul li:hover {
-  background-color: #f1f1f1;
+ background-color: #f1f1f1;
 }
 
-
 .canvas_class {
-  backface-visibility: visible;
-  /* height: 750px;
-  width: 1640px; */
-  border: 2px solid rgb(3, 3, 4);
-  
+ backface-visibility: visible;
+ /* height: 750px;
+ width: 1640px; */
+ border: 2px solid rgb(3, 3, 4);
 }
 
 #label_size{
-  width: 50px; /* Set the width of the input box */
-  height: 20px;
-  
+ width: 50px; /* Set the width of the input box */
+ height: 20px;
 }
 
 #label_width{
-  width: 50px; /* Set the width of the input box */
-  height: 20px;
-  
+ width: 50px; /* Set the width of the input box */
+ height: 20px;
 }
+
 #label_height{
-  width: 50px; /* Set the width of the input box */
-  height: 20px;
-  
+ width: 50px; /* Set the width of the input box */
+ height: 20px;
 }
-
-
- /*
- .tools-board .row{
-   margin-bottom: 20px;
- }
- .row .options{
-   list-style: none;
-   margin: 10px 0 0 5px;
- }
- .row .options .option{
-   display: flex;
-   cursor: pointer;
-   align-items: center;
-   margin-bottom: 10px;
- }
- .option:is(:hover, .active) img{
-   filter: invert(17%) sepia(90%) saturate(3000%) hue-rotate(900deg) brightness(100%) contrast(100%);
- }
- .option :where(span, label){
-   color: #5A6168;
-   cursor: pointer;
-   padding-left: 10px;
- }
- .option:is(:hover, .active) :where(span, label){
-   color: #4A98F7;
- }
- .option #fill-color{
-   cursor: pointer;
-   height: 14px;
-   width: 14px;
- }
- #fill-color:checked ~ label{
-   color: #4A98F7;
- }
- .option #size-slider{
-   width: 100%;
-   height: 5px;
-   margin-top: 10px;
- }
- .colors .options{
-   display: flex;
-   justify-content: space-between;
- }
- .shape .options{
-   display: flex;
-   justify-content: space-between;
- }
- .colors .option{
-   height: 20px;
-   width: 20px;
-   border-radius: 50%;
-   margin-top: 3px;
-   position: relative;
- }
- .colors .option:hover::before{
-   position: absolute;
-   content: "";
-   top:50%;
-   left:50%;
-   height: 12px;
-   width: 12px;
-   background: inherit;
-   border-radius: inherit;
-   border: 2px solid #fff;
-   transform: translate(-50%, -50%);
- }
- .colors .option:nth-child(1){
-   background-color: #fff;
-   border: 1px solid #bfbfbf;
- }
- .colors .option:nth-child(2){
-   background-color: #000;
- }
- .colors .option:nth-child(3){
-   background-color: #E02020;
- }
- .colors .option:nth-child(4){
-   background-color: #6DD400;
- }
- .colors .option:nth-child(5){
-   background-color: #4A98F7;
- }
- .colors .option:first-child.hover::before{
-   border-color: #ccc;
- }
- .colors .option.selected::before{
-   position: absolute;
-   content: "";
-   top: 50%;
-   left: 50%;
-   height: 12px;
-   width: 12px;
-   background: inherit;
-   border-radius: inherit;
-   border: 2px solid #fff;
-   transform: translate(-50%, -50%);
- }
- .colors .option:first-child.selected::before{
-   border-color: #ccc;
- }
- .option #color-picker{
-   opacity: 0;
-   cursor: pointer;
- }
- .buttons button{
-   width: 100%;
-   color: #fff;
-   border: none;
-   outline: none;
-   padding: 11px 0;
-   font-size: 0.9rem;
-   margin-bottom: 13px;
-   background: none;
-   border-radius: 4px;
-   cursor: pointer;
- }
- .buttons .clear-canvas{
-   color: #ffffff;
-   background-color: #6C757D;
-   border: 1px solid #6C757D;
-   transition: all 0.3s ease;
- }
- .clear-canvas:hover{
-   color: #fff;
-   background: #6C757D;
- }
- .buttons .save-img{
-   background: #4A98F7;
-   border: 1px solid #4A98F7;
- }
- .buttons #textButton{
-   background: #4A98F7;
-   border: 1px solid #4A98F7;
- }
- 
- .drawing-board canvas{
-   width: 100%;
-   height: 100%;
- }
- 
- #textbox {
-   position: absolute;
-   display: none;
-   border: 1px solid black;
-   background-color: white;
-   padding: 5px;
- } */
