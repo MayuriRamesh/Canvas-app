@@ -1,5 +1,5 @@
  /* Import Google font - Poppins */
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+ @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
  /**{
    margin: 0;
    padding: 0;
@@ -7,19 +7,32 @@
    font-family: 'Poppins', sans-serif;
  }*/
  body{
-   display: flex;
+   /* display: flex; */
    /* align-items: center;
    justify-content: center; */
-   min-height: 100vh;
-   background: #98d4db;
+   /* min-height: 100vh;
+   background: #98d4db; */
     
  }
+
+ .dialog {
+  position: fixed;
+top: 25%;
+  left: 55%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 8px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
   .container{
    display: flex;
-   width: 98.5%;
+   
+   /* width: 100%; */
     gap: 4px; 
     padding: 10px; 
-   /* max-width: 200%; */
+   max-width: 200%;
    /* padding-bottom: 1cm; */
    height:97vh;
    position: fixed;
@@ -50,18 +63,18 @@
    
  }
  .drawing-board > div:first-child {
-  flex: 1 ; /* Each div will take an equal amount of space */
+  flex: 2 ; /* Each div will take an equal amount of space */
   display: flex;
   flex-direction: column;
   background-color: white;
-  border-radius: 5px;
+  border-radius: 4px;
   padding-left: 2px;
   
 }
 .drawing-board > div:last-child {
   flex: 9; /* This div will take 100% (twice the width) of the available width */
   background-color: white;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 .drawing-board > div > div {
@@ -72,16 +85,22 @@
   background: transparent;
  }
  .tools-board{
-   width: 99.5%;
-   padding: 4px 5px 5px;
+   
+   width: 100%; 
+   padding: 4px 5px ;
    
    /* position: fixed; */
  } 
 
  input [type="number"]{
-  width: 60px; /* Set the width of the input box */
+  width: 30px; /* Set the width of the input box */
   height: 18px; /* Set the height of the input box */
   /* Add any additional styling as needed */
+}
+
+#tab-o{
+  width: 80px; /* Set the width of the input box */
+  height: 20px;
 }
 
 
@@ -222,15 +241,11 @@
   margin: 0;
 
 
-}
+} 
 
 .tm-entity-list ul li {
-  /* padding: 4px;
-  cursor: pointer;
-  color: black; */
-  
-  color: black;
-  /* padding: 5px 6px; */
+ 
+  color: black; 
   cursor: pointer;
   text-decoration: none;
   display: block;
@@ -249,6 +264,22 @@
   
 }
 
+#label_size{
+  width: 50px; /* Set the width of the input box */
+  height: 20px;
+  
+}
+
+#label_width{
+  width: 50px; /* Set the width of the input box */
+  height: 20px;
+  
+}
+#label_height{
+  width: 50px; /* Set the width of the input box */
+  height: 20px;
+  
+}
 
 
  /*

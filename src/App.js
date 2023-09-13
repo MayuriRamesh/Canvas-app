@@ -3,7 +3,9 @@ import axios from 'axios';
 import getStroke from "perfect-freehand";
 import "./style.css";
 import Switch from '@mui/material/Switch';
-
+// import { Home } from "@material-ui/icons";
+import { Link } from "react-router-dom";
+// import { useHistory } from 'react-router-dom';
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
 };
@@ -122,7 +124,8 @@ const useHistory = initialState => {
 
   const undo = () => index > 0 && setIndex(prevState => prevState - 1);
   const redo = () => index < history.length - 1 && setIndex(prevState => prevState + 1);
-
+    
+  
   return [history[index], setState, undo, redo];
 };
 
@@ -177,7 +180,7 @@ const usePressedKeys = () => {
 
 
 const App = ({ context }) => {
-  const [elements, setElements, undo, redo] = useHistory([]);
+  const [elements, setElements, undo, redo,history] = useHistory([]);
   const [action, setAction] = useState("none");
   const [tool, setTool] = useState("rectangle");
   const [selectedElement, setSelectedElement] = useState(null);
@@ -202,8 +205,8 @@ const App = ({ context }) => {
   const [barcodeFlag, setbarcodeFlag] = useState(false);
   const [qrFlag, setqrFlag] = useState(false);
 
-  const defaultCanvasWidth = 340; // Default canvas width in millimeters
-  const defaultCanvasHeight = 152; // Default canvas height in millimeters
+  const defaultCanvasWidth = 200; // Default canvas width in pixel
+  const defaultCanvasHeight = 100; // Default canvas height in pixel
   const [canvasWidth, setCanvasWidth] = useState(defaultCanvasWidth);
   const [canvasHeight, setCanvasHeight] = useState(defaultCanvasHeight);
   const [selectedSize, setSelectedSize] = useState(`${defaultCanvasWidth}x${defaultCanvasHeight}`);
@@ -212,96 +215,176 @@ const App = ({ context }) => {
  
  const [draggedName, setDraggedName] = useState('');
  const [draggedPosition, setDraggedPosition] = useState({ x: 0, y: 0 });
+ 
+ const [isDialogOpen, setIsDialogOpen] = useState(false);
+ const [selectedUnit, setSelectedUnit] = useState("mm");
+ 
+
+ const labelUnitSelect = document.getElementById("label-unit");
+ 
+
+ const handleImageClick = () => {
+  setIsDialogOpen(true);
+};
 
 
-//  const handleNameClick = (entityName) => {
-//   // setSelectedEntityName(entityName);
-//   if (draggedName === entityName) {
-//     setDraggedName('');
-//     setDraggedPosition({ x: 0, y: 0 });
-//   } else {
-//     setDraggedName(entityName);
-//     setDraggedPosition({ x: 0, y: 0 });
-//   }
-// };
-
-// const handleNameDoubleClick = (entityName) => {
-//   setDraggedName(entityName);
-// };
-
-// const handleDragStart = (event, entityName) => {
-//   event.dataTransfer.setData('text/plain', entityName);
-// };
-
-// const handleDragEnd = () => {
-//   setDraggedName('');
-//   setDraggedPosition({ x: 0, y: 0 });
-// };
-
-// const handleDrop = (event) => {
-//   event.preventDefault();
-//   const canvas = document.getElementById('canvas');
-//   const rect = canvas.getBoundingClientRect();
-//   const x = event.clientX - rect.left;
-//   const y = event.clientY - rect.top;
-
-//   setDraggedPosition({ x, y });
-// };
-
-// const handleCanvasMouseMove = (event) => {
-//   if (draggedName) {
-//     setDraggedPosition({ x: 0, y: 0 });
-//     const canvas = canvasRef.current;
-//     const context = canvas.getContext('2d');
-//     // context.clearRect(0, 0, canvasWidth, canvasHeight);
-
-//     const x = event.nativeEvent.offsetX;
-//     const y = event.nativeEvent.offsetY;
-
-//     context.fillText(draggedName, x, y);
-//   }
-// };
-
-// const handleCanvasMouseUp = () => {
-//   if (draggedName) {
-//     setDraggedName('');
-//     const canvas = canvasRef.current;
-//     const context = canvas.getContext('2d');
-//     context.clearRect(0, 0, canvasWidth, canvasHeight);
-//   }
-// };
+const labelSize = () => {
+  const selectedValue = document.getElementById("label-unit").value;
+  const selectedWidth = document.getElementById("label_width").value;
+  const selectedHeight = document.getElementById("label_height").value;
   
+  const canvas = canvasRef.current;
+
+
+  // Update the canvas size based on the selected option
+  console.log("getElementById value",selectedValue);
+  console.log("getElementById width ",selectedWidth);
+  console.log("getElementById height",selectedHeight);
+
+  if (selectedValue === "mm") {
+    
+    canvas.width = selectedWidth / 0.264
+    canvas.height = selectedHeight / 0.264
+   
+    console.log("width, height in mmmmmmmmmmm", canvas.width, canvas.height)
+   
+  } else if (selectedValue === "inch") {
+    canvas.width = selectedWidth / 0.010416667  // Convert to millimeters and adjust for DPI
+    canvas.height = selectedHeight / 0.010416667  // Convert to millimeters and adjust for DPI
+    console.log("width, height in inchhhhhhhhhhhhh", canvas.width, canvas.height)
+  } else if (selectedValue === "cm") {
+    // You can add the conversion factor from cm to inches here if needed.
+    canvas.width = selectedWidth /0.026458333
+    canvas.height = selectedHeight /0.026458333
+    console.log("width, height in ccccmmmmmmmmmmm", canvas.width, canvas.height)
+  }
+  else if (selectedValue === "Select unit") {
+    
+    canvas.width = selectedWidth 
+    canvas.height = selectedHeight 
+    console.log("width, height by default mmmmmmmmmmm", canvas.width, canvas.height)
+  
+  };
+  
+}
+
+const handleUnitChange = (e) => {
+  const newUnit = e.target.value;
+  setSelectedUnit(newUnit);
+  labelSize(newUnit); // Call labelSize with the new unit
+};
+
+useEffect(() => {
+  labelSize(selectedUnit);
+}, [selectedUnit]);
+
+const handleOkButtonClick = () => {
+  // Close the dialog
+  setIsDialogOpen(false);
+};
+// const elementCoordinates = [];
+const line_co_ords=[];
+const rectangle_co_ords = [];
+const text_co_ords = [];
+
   const drawElement = (context, element) => {
+
+    let line_coordinates;
+    let text_coordinates;
+    let rect_coordinates;
+    let pen_coordinates
+
     switch (element.type) {
       case "line":
         context.beginPath();
         context.moveTo(element.x1, element.y1);
         context.lineTo(element.x2, element.y2);
         context.stroke();
+
+        line_coordinates = {
+          // type: "line",
+          // start: { x: element.x1, y: element.y1 },
+          // end: { x: element.x2, y: element.y2 }
+          x1: element.x1, 
+          y1: element.y1,
+          x2: element.x2,
+          y2: element.y2
+        };
+
+        // console.log(`Type: ${line_coordinates.type}`);
+        // console.log(`Start Point: x=${line_coordinates.start.x}, y=${line_coordinates.start.y}`);
+        // console.log(`End Point: x=${line_coordinates.end.x}, y=${line_coordinates.end.y}`);
+        console.log(`x1 = ${line_coordinates.x1}, y1=${line_coordinates.y1},x2 = ${line_coordinates.x2}, y2=${line_coordinates.y2}`);
         break;
+
       case "rectangle":
         context.strokeRect(element.x1, element.y1, element.x2 - element.x1, element.y2 - element.y1);
-        console.log("drawwwwwww rect start point x,y",element.x1, element.y1)
+        
+        rect_coordinates = {
+          // type: "rectangle",
+          // start: { x: element.x1, y: element.y1 },
+          // end: { x: element.x2, y: element.y2 }
+          x1: element.x1, 
+          y1: element.y1,
+          x2: element.x2,
+          y2: element.y2
+        };
+
+        console.log(`x1 = ${rect_coordinates.x1}, y1=${rect_coordinates.y1},x2 = ${rect_coordinates.x2}, y2=${rect_coordinates.y2}`);   /*you see backticks (`) surrounding the string. 
+        These backticks are used to create a template literal, which is a more powerful way to create strings in JavaScript compared to traditional string concatenation.
+        Within the template literal, you can embed expressions by using ${...}. In this case, coordinates.type is an expression that retrieves the type property from the coordinates object.
+        */
+        // console.log(`Start Point: x=${rect_coordinates.start.x}, y=${rect_coordinates.start.y}`);
+        // console.log(`End Point: x=${rect_coordinates.end.x}, y=${rect_coordinates.end.y}`);
         break;
+
       case "pencil":
         const stroke = getStroke(element.points);
         const path = new Path2D(getSvgPathFromStroke(stroke));
         context.fill(path);
+
+        pen_coordinates = {
+          type: "pencil",
+          points: element.points
+        };
+
+        console.log(`Type: ${pen_coordinates.type}`);
+        console.log(`points: ${pen_coordinates.points}`);
         break;
+
       case "text":
         context.textBaseline = "top";
         context.font = `${fontSize}px sans-serif`;
         context.fillText(element.text, element.x1, element.y1);
+        
+        text_coordinates = {
+          // type: "text",
+          // text: element.text,
+          // position: { x: element.x1, y: element.y1 }
+          x1: element.x1, 
+          y1: element.y1,
+        };
+
+        // console.log(`Type: ${text_coordinates.type}`);
+        // console.log(`position: x=${text_coordinates.position.x}, y=${text_coordinates.position.y}`);
+        console.log(`x1 = ${text_coordinates.x1}, y1=${text_coordinates.y1}`); 
         break;
       default:
         throw new Error(`Type not recognised: ${element.type}`);
     }
+    // elementCoordinates.push(coordinates)
+      line_co_ords.push(line_coordinates);
+      rectangle_co_ords.push(rect_coordinates);
+      text_co_ords.push(text_coordinates);
   };
+
   const [image, setImage] = useState(null);
   
   const handleImageUpload = (event) => {
+    console.log("Inside handleImageUpload()")
     const uploadedImage = event.target.files[0];
     setImage(uploadedImage);
+    setIsDialogOpen(false);
   };
   
    useEffect(() => {
@@ -319,7 +402,7 @@ const App = ({ context }) => {
   
     // Draw the uploaded image on the canvas when the image state changes
     
-    //ctx.save();
+    
     if (image) {
       const img = new Image();
       img.src = URL.createObjectURL(image);
@@ -337,19 +420,85 @@ const App = ({ context }) => {
       };
     }
     
-    //ctx.restore();
+    
   }
   
-  const handleSizeChange = (event) => {
-    const canvas = document.getElementById("canvas");
-    const context = canvas.getContext("2d");
-    const newSize = event.target.value;
-    const [newWidth, newHeight] = newSize.split("x").map(Number);
-    setSelectedSize(newSize);
-    setCanvasWidth(newWidth);
-    setCanvasHeight(newHeight);
+
+
+  const handleHeightChange = (e) => {
+    const canvas = canvasRef.current;
+    const selectedValue = document.getElementById("label-unit").value;
+    console.log("selecteddddddddd value",selectedValue );
+    
+    let newHeight = parseInt(e.target.value, 10);
+
+    if (selectedValue === "mm") {
+      // canvas.width = canvas.width * mmToInch / dpiWidth; // Convert to inches and adjust for DPI
+      // canvas.height = canvas.height * mmToInch / dpiHeight; // Convert to inches and adjust for DPI
+      // canvas.width = canvasWidth / 0.264
+      // canvas.height = canvasHeight / 0.264
+      newHeight = newHeight / 0.264
+     
+      console.log(" height in mmmmmmmmmmm", newHeight)
+     
+    } else if (selectedValue === "inch") {
+      // canvas.width = canvasWidth / 0.010416667  // Convert to millimeters and adjust for DPI
+      canvas.height = canvasHeight / 0.010416667  // Convert to millimeters and adjust for DPI
+      console.log(" height in inchhhhhhhhhhhhh", newHeight)
+    } else if (selectedValue === "cm") {
+      // You can add the conversion factor from cm to inches here if needed.
+      // canvas.width = canvasWidth /0.026458333
+      newHeight = newHeight /0.026458333
+      console.log("height in ccccmmmmmmmmmmm", newHeight)
+    }
+    else if (selectedValue === "Select unit") {
+      
+      // canvas.width = canvasWidth 
+      newHeight = newHeight
+      console.log(" height by default mmmmmmmmmmm", newHeight)
+    
+    };
+
+   setCanvasHeight(newHeight);
 
   };
+
+  const handleWidthChange = (e) => {
+    console.log("inside handleWidthCHnage*************")
+    const canvas = canvasRef.current;
+    const selectedValue = document.getElementById("label-unit").value;
+    console.log("selecteddddddddd width value",selectedValue );
+    let newWidth = parseInt(e.target.value, 10);
+
+    if (selectedValue === "mm") {
+      // canvas.width = canvas.width * mmToInch / dpiWidth; // Convert to inches and adjust for DPI
+      // canvas.height = canvas.height * mmToInch / dpiHeight; // Convert to inches and adjust for DPI
+      newWidth = newWidth / 0.264
+      // canvas.height = canvasHeight / 0.264
+     
+      console.log("width in mmmmmmmmmmm", newWidth)
+     
+    } else if (selectedValue === "inch") {
+      newWidth = newWidth / 0.010416667  // Convert to millimeters and adjust for DPI
+      // canvas.height = canvasHeight / 0.010416667  // Convert to millimeters and adjust for DPI
+      console.log("width in inchhhhhhhhhhhhh", newWidth)
+    } else if (selectedValue === "cm") {
+      // You can add the conversion factor from cm to inches here if needed.
+      newWidth = newWidth /0.026458333
+      // canvas.height = canvasHeight /0.026458333
+      console.log("width in ccccmmmmmmmmmmm", newWidth)
+    }
+    else if (selectedValue === "Select unit") {
+      
+      newWidth = newWidth 
+      // canvas.height = canvasHeight 
+      console.log("width by default mmmmmmmmmmm", newWidth)
+    
+    };
+
+    setCanvasWidth(newWidth);
+    
+   };
 
   const handleFontSizeChange = (event) => {
     const newFontSize = parseInt(event.target.value);
@@ -374,12 +523,12 @@ const App = ({ context }) => {
 
 
   const handleDBImageClick = () => {
-    console.log('handleImageClick triggered');
+    console.log('handleDBImageClick triggered ************');
     console.log('Before state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_labels')
+    axios.get('http://127.0.0.1:5000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
   console.log("resssssssssssponseeee",response)
@@ -407,9 +556,9 @@ console.log('After state update - isListOpen:', isListOpen);
   };
 
   
-  const handleEntityClick = (entityName) => {
+const handleEntityClick = (entityName) => {
     setSelectedEntityName(entityName);
-    // setIsListOpen(false);
+    setIsListOpen(false);
     console.log("********selected Entity name*******",entityName);
     val_array.push(entityName)
     let currentY = 50;
@@ -438,12 +587,12 @@ console.log('After state update - isListOpen:', isListOpen);
   };
 
   const handleWeightDBImageClick = () => {
-    console.log('handleImageClick triggered');
+    console.log('handleWeightDBImageClick triggered');
     console.log('Before state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_units')
+    axios.get('http://127.0.0.1:5000/select_units')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -473,12 +622,12 @@ console.log('After state update - isListOpen:', isListOpen);
 
 
   const handleTimeDBImageClick = () => {
-        console.log('handleImageClick triggered');
+        console.log('handleTimeDBImageClick triggered');
     console.log('Before state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_date_time')
+    axios.get('http://127.0.0.1:5000/select_date_time')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -507,19 +656,21 @@ console.log('After state update - isListOpen:', isListOpen);
 
 
 
-/***************************************************************************** */
-  // Toggle the dropdown visibility for file label open
+/*******************Toggle the dropdown visibility for file label open****************** */
+  
   function toggleDropdown() {
     setShowDropdown((prevShowDropdown) => !prevShowDropdown);
+    
   }
-
+  
   // Close the dropdown if the user clicks outside of it
   function handleClickOutside(event) {
     if (!event.target.matches('.dropbtn')) {
       setShowDropdown(false);
     }
+   
   }
-
+  
   // Attach the event listener for clicks outside the dropdown
   React.useEffect(() => {
     document.addEventListener('click', handleClickOutside);
@@ -527,6 +678,7 @@ console.log('After state update - isListOpen:', isListOpen);
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+ 
  /***************************************************************************** */ 
 
   useLayoutEffect(() => {
@@ -576,25 +728,14 @@ console.log('After state update - isListOpen:', isListOpen);
         y: prevState.y - event.deltaY,
       }));
     };
-
-    document.addEventListener("wheel", panFunction);
-    return () => {
-      document.removeEventListener("wheel", panFunction);
-    };
+  //Scroll 
+    // document.addEventListener("wheel", panFunction);
+    // return () => {
+    //   document.removeEventListener("wheel", panFunction);
+    // };
   }, []);
 
   useEffect(() => {
-  //   const textArea = textAreaRef.current;
-  //   if (action === "writing") {
-  //     setTimeout(() => {
-  //       textArea.focus();
-  //       textArea.value = selectedElement.text;  
-  //     }, 0);
-  //     console.log("prrrrrrrrrrrrrrrint",textArea[0]);
-  //     text_array.push(textArea)
-  //   }
-  // }, [action, selectedElement]);
-
   const textArea = textAreaRef.current;
     if (action === "writing" && selectedElement) {
       setTimeout(() => {
@@ -605,6 +746,8 @@ console.log('After state update - isListOpen:', isListOpen);
     }
   }, [action, selectedElement]);
 
+
+
   const createElement = (id, x1, y1, x2, y2, type) => {
      switch (type) {
       case "line":
@@ -614,7 +757,6 @@ console.log('After state update - isListOpen:', isListOpen);
       case "pencil":
         return { id, type, points: [{ x: x1, y: y1 }] };
       case "text":
-        // return { id, type, x1, y1, x2, y2, text: "" };
         
         // Step 2: Include tabOrder for text elements
         const element = { id, type, x1, y1, x2, y2, text: "" };
@@ -663,13 +805,15 @@ console.log('After state update - isListOpen:', isListOpen);
      const canvasRect = canvas.getBoundingClientRect();
     const clientX = event.clientX - canvasRect.left //panOffset.x;//186,194
     const clientY = event.clientY - canvasRect.top //panOffset.y;//179 ,156
-    console.log("x, y",clientX, clientY);
-    console.log("pan offffffsetttttttt",panOffset.x, panOffset.y )
+    // console.log("x, y",clientX, clientY);
+    //console.log("pan offffffsetttttttt",panOffset.x, panOffset.y )
     return { clientX, clientY };
     
   };
 
   const handleMouseDown = (event, canvasContext) => {
+
+    
     canvasContext.save();
     if (action === "writing") return;
     /** extracts the clientX and clientY properties from the result of calling the getMouseCoordinates function with the event parameter.
@@ -703,6 +847,7 @@ console.log('After state update - isListOpen:', isListOpen);
            * This can be used for moving or resizing other types of elements. */
           const offsetX = clientX - element.x1;
           const offsetY = clientY - element.y1;
+          //console.log("when tool is selection in mouseDown, x , y =", offsetX, offsetY)
           setSelectedElement({ ...element, offsetX, offsetY });
         }  
         // setElements(prevState => prevState);
@@ -729,25 +874,6 @@ console.log('After state update - isListOpen:', isListOpen);
   const handleMouseMove = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
 
-    // if (draggedName) {
-    //   setDraggedName('');
-    //   setDraggedPosition({ x: 0, y: 0 }); 
-    //   const canvas = canvasRef.current;
-    //   const context = canvas.getContext('2d');
-    //   // context.clearRect(0, 0, canvasWidth, canvasHeight);
-  
-    //   const x = event.nativeEvent.offsetX;
-    //   const y = event.nativeEvent.offsetY;
-    //   const adjustedX = 50 + panOffset.x;
-    //   const adjustedY = 50 + panOffset.y;
-    //   val_array.forEach(selectedEntityName => {
-    //     const newY= adjustedY+20;
-    //     context.fillText(` ${selectedEntityName}`,adjustedX,newY);
-        
-    //   })
-    //   context.fillText(draggedName, x, y);
-     
-    // }
     if (action === "panning") {
       const deltaX = clientX -startPanMousePosition.x;
       const deltaY = clientY -startPanMousePosition.y ;
@@ -757,7 +883,7 @@ console.log('After state update - isListOpen:', isListOpen);
         
       }
       );
-      console.log("offfffffsettttt",panOffset.x, panOffset.y)
+      // console.log("offfffffsettttt",panOffset.x, panOffset.y)
       return;
     }
 
@@ -797,22 +923,10 @@ console.log('After state update - isListOpen:', isListOpen);
       updateElement(id, x1, y1, x2, y2, type);
     }
     /******************************************************************************************* */
-    // If dragging the entity name
-    // if (draggedEntity) {
-    //   const mouseX = event.nativeEvent.offsetX;
-    //   const mouseY = event.nativeEvent.offsetY;
-    //   setSelectedEntityPosition({
-    //     x: mouseX - dragOffset.x,
-    //     y: mouseY - dragOffset.y,
-    //   });
-
-    // Update the entity name position
-    // drawCanvas(); // Update canvas on mouse move
+   
   // } /***************************************************************************************** */
   };
 
-
-  
 
   const handleMouseUp = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
@@ -823,6 +937,7 @@ console.log('After state update - isListOpen:', isListOpen);
         clientY - selectedElement.offsetY === selectedElement.y1
       ) {
         setAction("writing");
+        //console.log("handleMouseUp, for text, x , y  =", selectedElement.x1,selectedElement.y1)
         return;
       }
 
@@ -831,40 +946,18 @@ console.log('After state update - isListOpen:', isListOpen);
       if ((action === "drawing" || action === "resizing") && adjustmentRequired(type)) {
         const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
         updateElement(id, x1, y1, x2, y2, type);
+        //console.log("handleMouseUp after update, for drawing and resize, x1 , y1 ,x2,y2 =", x1,y1,x2,y2)
       }
     }
-    // if (draggedName) {
-      
-    //   // context.clearRect(0, 0, canvasWidth, canvasHeight);
-    //   const x = event.nativeEvent.offsetX;
-    //   const y = event.nativeEvent.offsetY;
-    //   setDraggedName('');
-    //   setDraggedPosition({ x: 0, y: 0 });
-
-    //   const canvas = canvasRef.current;
-    //   const context = canvas.getContext('2d');
-    //   // context.fillText(draggedName, x, y);
-    //   entities.forEach((entity) => {
-    //     context.fillText(entity, x, y);
-    //     y += 20; // Adjust the y-coordinate for the next name
-    //   });
-    // }
+    
     if (action === "writing") return;
-
-    // If dragging the entity name
-  // if (action === "dragging") {
-  //   setAction("none");
-  //   return;
-  // }
 
     setAction("none");
     setSelectedElement(null);
   
   };
 
-
-  
-
+ 
   const handleBlur = event => {
     const { id, x1, y1, type } = selectedElement;
     setAction("none");
@@ -874,7 +967,7 @@ console.log('After state update - isListOpen:', isListOpen);
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
-  const  jsonData= (labelNameValue,labelAddValue) =>{
+  const  jsonData= (labelNameValue,labelAddValue,coordinates) =>{
     const textareaValues = text_array.map(textArea => textArea.value);
       let data = {
         'label_text' : textareaValues, //text label array
@@ -882,7 +975,12 @@ console.log('After state update - isListOpen:', isListOpen);
         'is_barcode': barcodeFlag,
         'is_qrcode': qrFlag,
         'company_name':labelNameValue,
-        'company_address':labelAddValue
+        'company_address':labelAddValue,
+        // 'selected_element_co-ordinates':elementCoordinates
+        'line_co-ordinates':line_co_ords,
+        'rect_co-ordinates':rectangle_co_ords,
+        'text_co-ordinates':text_co_ords
+       
       }
 
       return JSON.stringify(data)
@@ -897,11 +995,12 @@ console.log('After state update - isListOpen:', isListOpen);
     console.log("*************inside handleSaveImage*********");
     try{
     const labelNameValue = document.getElementById("label_name").value;
-    const labelAddValue = document.getElementById("label_add").value 
-    const post_data = jsonData(labelNameValue,labelAddValue)//give function call to json data 
+    const labelAddValue = document.getElementById("label_add").value;
+    const post_data = jsonData(labelNameValue,labelAddValue, line_co_ords, rectangle_co_ords, text_co_ords)//give function call to json data 
     //to send post req to generate code
+
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
-     axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
+     axios.post('http://127.0.0.1:5000/generate_zpl',post_data,{
       headers: {
         'Content-Type': 'application/json'
       }
@@ -946,33 +1045,6 @@ console.log('After state update - isListOpen:', isListOpen);
   };
   
 
-   
-  // Step 4: Add helper function to update tab order after deletion
-  const updateTabOrderAfterDeletion = deletedTabOrder => {
-    const updatedElements = elements.map(element => {
-      if (element.type === "text" && element.tabOrder > deletedTabOrder) {
-        return { ...element, tabOrder: element.tabOrder - 1 };
-      }
-      return element;
-    });
-    setElements(updatedElements, true);
-    setTabOrder(prevTabOrder => prevTabOrder - 1);
-  };
-
-   
-    // Step 6: Add handleDelete function
-  const handleDelete = () => {
-    if (selectedElement) {
-      const index = selectedElement.id;
-      if (selectedElement.type === "text") {
-        updateTabOrderAfterDeletion(selectedElement.tabOrder); // Step 4: Update tab order after deletion
-      }
-      const updatedElements = elements.filter(element => element.id !== index);
-      setElements(updatedElements, true);
-      setSelectedElement(null);
-    }
-  };
-
 // Step 6: Function to update tabOrder of the selected element
 
 const handleTabOrderChange = event => {
@@ -998,14 +1070,14 @@ const drawCanvas = () => {
   const canvas = canvasRef.current;
   const context = canvas.getContext('2d');
 
-  context.font = '16px Arial';
+  context.font = '14px Arial';
   context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
-  const adjustedX = 240 + panOffset.x;
-  let adjustedY = 50 + panOffset.y;
+  const adjustedX = 160 + panOffset.x;
+  let adjustedY = 30 + panOffset.y;
   // context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
   val_array.forEach(selectedEntityName => {
-    adjustedY+=50
+    adjustedY+=40
     context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
     
   })
@@ -1022,20 +1094,19 @@ useEffect(() => {
 
 /************************************************************************ */
 
-       
-
+  
     return (
-    <body>
-    <div className="container">
+    <body style={{background: "#98d4db"}}>
+    <div className="container" style={{background: "#98d4db"}} >
       
-      <section className="tools-board">
-        <div>
+      <section className="tools-board" >
+        <div style={{height:"1.3cm"}}>
          
             <div className="dropdown">
               <button onClick={toggleDropdown} className="dropbtn">File</button>&emsp;
               <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
-                <a href="#home">New</a>
-                {/* <a href="#about" onClick={handleFileUpload}>Open</a> */}
+                <a href="/label_Ui" >New</a>
+                
                 <input
                     type="file"
                     id="fileInput"
@@ -1046,7 +1117,7 @@ useEffect(() => {
                     Open
                   </label>
 
-                {/* <a href="#contact">Save</a> */}
+                
                 <a href="#home" onClick={handleSaveFile}>Save</a>
               </div>
             </div>
@@ -1059,11 +1130,11 @@ useEffect(() => {
           {/* <button onClick={undo}>Undo</button>&emsp; */}
           {/* <button onClick={redo}>Redo</button> */}
           <img width="16" height="16" src="https://img.icons8.com/tiny-color/16/redo.png" alt="redo" onClick={redo} title="Redo"/>
-          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
+          {/* <hr style={{color:"black", width:"100%",height:"0.1px"}}></hr> */}
         </div>
         
         {/* <div className="row shape" style={{ position: "fixed", paddingTop: "1.2cm" }}> */}
-        <div>
+        <div style={{height:"1.5cm"}}>
         <img width="24" height="27" src="https://img.icons8.com/external-itim2101-flat-itim2101/64/000000/external-printer-school-stationery-itim2101-flat-itim2101.png" alt="external-printer-school-stationery-itim2101-flat-itim2101"/>&emsp;&nbsp;
         <img width="36" height="26" src="https://img.icons8.com/glyph-neue/64/000000/barcode.png" alt="barcode"/>
         <Switch
@@ -1083,13 +1154,13 @@ useEffect(() => {
         size="small"
         inputProps={{ 'aria-label': 'flag switch' }}
         />&nbsp;
-        {/* <div onClick={handleOutsideClick}> */}
-
+        
           <img
             width="28"
             height="27"
             src="https://img.icons8.com/offices/30/database-export.png"
             alt="database-daily-export"
+            id="handleDBImage"
             onClick={handleDBImageClick}
             style={{ cursor: 'pointer' }}
           />&emsp;&nbsp;
@@ -1142,16 +1213,7 @@ useEffect(() => {
               
               {entities.length> 0 && (
                 <ul>
-                                  
-                    {/* {(() => {
-                    const listItems = [];
-                    for (let i = 0; i < entities.length; i++) {
-                      const entity = entities[i];
-                      listItems.push(<li key={entity.id}>{entity.name}</li>);
-                    }
-                    return listItems;
-                  })()} */}
-
+                  
                   {entities.map(entity => (
                           <li key={entity.id} onClick={() => handleTDEntityClick(entity.date)} className={selectedEntityName === entity.date ? 'selected' : ''}>
                             {entity.date}
@@ -1196,32 +1258,52 @@ useEffect(() => {
         {/* <label htmlFor="pencil">Pencil</label>&emsp; */}
         
         <input type="radio" id="text" checked={tool === "text"} onChange={() => setTool("text")} />
-        <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color" />&emsp;&emsp;&nbsp;
+        <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color" />&emsp;&nbsp;
         {/* <label htmlFor="text">Text</label> */}
-        {/* <input
-        type="file"
+        
+        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" onClick={handleImageClick}/>
+        {isDialogOpen && (
+        <div className="dialog">
+        <input
+         type="file"
         accept="image/*"
         onChange={handleImageUpload}
-      /> */}
-        <img width="30" height="30" src="https://img.icons8.com/color-glass/48/picture.png" alt="pic" type="file"
-        accept="image/*"
-        onClick={handleImageUpload}/>
-        <hr style={{color:"#fff9f7", width:"100%"}}></hr>
+      />
+       <button onClick={handleOkButtonClick}>OK</button>
+        </div>
+      )}
+      {/*<hr style={{color:"#fff9f7", width:"100%"}}></hr>*/}
       </div>
       <div>
-        <label htmlFor="label-size"> Choose Label Template Size : </label>
-        <select id="label-size" name="label-size" onChange={handleSizeChange} value={selectedSize}>
-        <option value="340x152">full size</option>
-        <option value="80x60">80x60</option>
-        <option value="40x40">40x40</option>
-      </select>
+        <label htmlFor="label-size">Label Template Size : </label>
+        
+         <input type="number" id="label_width" name="label_width" placeholder="w"min="1"  onChange={handleWidthChange}  />x
+         <input type="number" id="label_height" name="label_height" placeholder="h"min="1" onChange={handleHeightChange} />&nbsp;
+     
+      <select id="label-unit" name="label-unit" onChange={handleUnitChange} > 
+        <option >Select unit</option> 
+        <option value="mm">mm</option> 
+	      <option value="inch">inch</option>
+        <option value="cm">cm</option>
+        </select>
         {/* <input type="text" id="label-size" name="label-size"/>&emsp; */}
         <label htmlFor="label_name"> Label Name : </label>
-        <input type="text" id="label_name" name="label_name"/>&emsp;
+        <input type="text" id="label_name" name="label_name" size="10"/>&emsp;
         <label htmlFor="label_add"> Label Address : </label>
-        <input type="text" id="label_add" name="label_add"/>&emsp;
-        <button>Barcode Format</button>&emsp;
-        <button>QR-code Format</button>
+        <input type="text" id="label_add" name="label_add" size="10" />&emsp;
+       
+        <Link to = '/admin-home'>
+        <button
+        variant="contained"
+        size="small"
+        
+        style={{backgroundColor:"#4169E1", color:"#FFFFFF"}}
+        onClick={() => history.push('/admin-home')}
+        //onClick={}
+        >Back to Home
+        </button>
+        </Link>
+
       </div>
       </section>
       {action === "writing" ? (
@@ -1230,8 +1312,8 @@ useEffect(() => {
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: selectedElement.y1 + panOffset.y ,
-            left: selectedElement.x1 + panOffset.x,
+            top: selectedElement.y1 + panOffset.y +150 ,
+            left: selectedElement.x1 + panOffset.x+185,
             font: `${selectedElement.fontSize ||fontSize}px sans-serif`, // Use dynamic font size
             margin: 0,
             padding: 0,
@@ -1250,39 +1332,39 @@ useEffect(() => {
         <section className="drawing-board">
         <div>
           <label><b>Behaviour</b></label>
-          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
+          {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
 
           <label htmlFor="tab-o">
             Tab Order:
              <input
                 id="tab-o"
                 type="number"
+                size="10"
                 // value={selectedElement.tabOrder}
                 value={selectedElement?.type === "text" ? selectedElement.tabOrder : ""}
                 onChange={handleTabOrderChange}
               />
             
-            {/* Add a button to delete the selected element */}
-            <button onClick={handleDelete}>Delete</button>
           </label>
-          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
+          {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
           
           <label><b>Misc</b></label>
-          <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr>
+          {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
 
-          <label htmlFor="font">Font Size :</label>
-          <input type="number" id="font" name="font"
+          <label htmlFor="font">Font Size :&emsp;&nbsp;
+          <input type="number" id="tab-o" name="font"
           value={fontSize}
           onChange={handleFontSizeChange}
          />
-          <br/>
+         </label>
+          
 
-          <label htmlFor="style">Style :
-          <input type="text" id="style" name="style"/></label><br/>
+          <label htmlFor="style">Style :&emsp;&nbsp;&emsp;&emsp;
+          <input type="text" id="tab-o" name="style"/></label>
 
           <label htmlFor="H-R">Height-Ratio :
-          <input type="number" id="H-R" name="H-R"/></label>
-          <hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>
+          <input type="number" id="tab-o" name="H-R"/></label>
+	{/*<hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>*/}
         </div> 
         
         <div>
@@ -1292,8 +1374,8 @@ useEffect(() => {
           ref={canvasRef}
           className="canvas_class"
           // height={window.innerHeight}
-          width={canvasWidth*3.7795275591} 
-          height={canvasHeight*3.7795275591}
+          width={canvasWidth} 
+          height={canvasHeight}
           // onMouseDown={handleMouseDown}
           // onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
           // onMouseMove={handleMouseMove}
@@ -1340,8 +1422,6 @@ useEffect(() => {
           // onMouseUp={handleCanvasMouseUp}
          
         >
-
-   
         </canvas>
         </div>
         
@@ -1352,4 +1432,3 @@ useEffect(() => {
 };
 
 export default App;
-
