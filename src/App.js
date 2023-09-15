@@ -3,9 +3,8 @@ import axios from 'axios';
 import getStroke from "perfect-freehand";
 import "./style.css";
 import Switch from '@mui/material/Switch';
-// import { Home } from "@material-ui/icons";
 import { Link } from "react-router-dom";
-// import { useHistory } from 'react-router-dom';
+
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
 };
@@ -42,6 +41,8 @@ const positionWithinElement = (x, y, element) => {
       return betweenAnyPoint ? "inside" : null;
     case "text":
       return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+    // case "entity":
+    //   return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
     default:
       throw new Error(`Type not recognised: ${type}`);
   }
@@ -107,17 +108,20 @@ const resizedCoordinates = (clientX, clientY, position, coordinates) => {
 
 const useHistory = initialState => {
   const [index, setIndex] = useState(0);
-  const [history, setHistory] = useState([initialState]);
+  const [history, setHistory] = useState([ initialState]);
 
   const setState = (action, overwrite = false) => {
     const newState = typeof action === "function" ? action(history[index]) : action;
+    
     if (overwrite) {
       const historyCopy = [...history];
       historyCopy[index] = newState;
+      
       setHistory(historyCopy);
     } else {
       const updatedState = [...history].slice(0, index + 1);
       setHistory([...updatedState, newState]);
+      
       setIndex(prevState => prevState + 1);
     }
   };
@@ -127,7 +131,9 @@ const useHistory = initialState => {
     
   
   return [history[index], setState, undo, redo];
+  
 };
+
 
 const getSvgPathFromStroke = stroke => {
   if (!stroke.length) return "";
@@ -180,9 +186,9 @@ const usePressedKeys = () => {
 
 
 const App = ({ context }) => {
-  const [elements, setElements, undo, redo,history] = useHistory([]);
+  const [elements, setElements, undo, redo] = useHistory([]);
   const [action, setAction] = useState("none");
-  const [tool, setTool] = useState("rectangle");
+  const [tool, setTool] = useState("selection");
   const [selectedElement, setSelectedElement] = useState(null);
   const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
   const [startPanMousePosition, setStartPanMousePosition] = React.useState({ x: 0, y: 0 });
@@ -419,8 +425,6 @@ const text_co_ords = [];
        
       };
     }
-    
-    
   }
   
 
@@ -528,7 +532,7 @@ const text_co_ords = [];
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:5000/select_labels')
+    axios.get('http://127.0.0.1:4000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
   console.log("resssssssssssponseeee",response)
@@ -592,7 +596,7 @@ const handleEntityClick = (entityName) => {
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:5000/select_units')
+    axios.get('http://127.0.0.1:4000/select_units')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -627,7 +631,7 @@ console.log('After state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:5000/select_date_time')
+    axios.get('http://127.0.0.1:4000/select_date_time')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -765,9 +769,9 @@ console.log('After state update - isListOpen:', isListOpen);
           setTabOrder(prevTabOrder => prevTabOrder + 1); // Step 3: Increment tab order for the next text element
         }
         return element;
-        
+      
       default:
-        throw new Error(`Type not recognised: ${type}`);
+        throw new Error(`Type not recognised create element: ${type}`);
     }
   };
 
@@ -793,8 +797,9 @@ console.log('After state update - isListOpen:', isListOpen);
           text: options.text,
         };
         break;
+      
       default:
-        throw new Error(`Type not recognised: ${type}`);
+        throw new Error(`Type not recognised in update element: ${type}`);
     }
 
     setElements(elementsCopy, true);
@@ -812,9 +817,8 @@ console.log('After state update - isListOpen:', isListOpen);
   };
 
   const handleMouseDown = (event, canvasContext) => {
-
-    
     canvasContext.save();
+
     if (action === "writing") return;
     /** extracts the clientX and clientY properties from the result of calling the getMouseCoordinates function with the event parameter.
      *  These properties represent the coordinates of the mouse pointer within the client area of the browser window. */
@@ -873,7 +877,6 @@ console.log('After state update - isListOpen:', isListOpen);
   
   const handleMouseMove = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
-
     if (action === "panning") {
       const deltaX = clientX -startPanMousePosition.x;
       const deltaY = clientY -startPanMousePosition.y ;
@@ -930,6 +933,7 @@ console.log('After state update - isListOpen:', isListOpen);
 
   const handleMouseUp = event => {
     const { clientX, clientY } = getMouseCoordinates(event);
+        
     if (selectedElement) {
       if (
         selectedElement.type === "text" &&
@@ -977,9 +981,10 @@ console.log('After state update - isListOpen:', isListOpen);
         'company_name':labelNameValue,
         'company_address':labelAddValue,
         // 'selected_element_co-ordinates':elementCoordinates
-        'line_co-ordinates':line_co_ords,
-        'rect_co-ordinates':rectangle_co_ords,
-        'text_co-ordinates':text_co_ords
+        'line_co_ordinates':line_co_ords,
+        'rect_co_ordinates':rectangle_co_ords,
+        'selected_element_co_text':text_co_ords,
+        'selected_element_co_label':text_co_ords
        
       }
 
@@ -1000,7 +1005,7 @@ console.log('After state update - isListOpen:', isListOpen);
     //to send post req to generate code
 
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
-     axios.post('http://127.0.0.1:5000/generate_zpl',post_data,{
+     axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
       headers: {
         'Content-Type': 'application/json'
       }
@@ -1069,20 +1074,103 @@ useEffect(() => {
 const drawCanvas = () => {
   const canvas = canvasRef.current;
   const context = canvas.getContext('2d');
-
+  const selectedValue = document.getElementById("label-unit").value;
+  
+  let adjustedX
+  let adjustedY
+ 
   context.font = '14px Arial';
   context.fillStyle = 'black';
   // ctx.fillText(`Selected Entity: ${selectedEntityName}`, 10, canvas.height - 20);
-  const adjustedX = 160 + panOffset.x;
+  /*
+  let adjustedX = 160 + panOffset.x;
   let adjustedY = 30 + panOffset.y;
-  // context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
-  val_array.forEach(selectedEntityName => {
-    adjustedY+=40
-    context.fillText(` ${selectedEntityName}`,adjustedX,adjustedY);
+  */
+  // let adjustedX = canvasWidth *0.5 + panOffset.x;
+  // let adjustedY = canvasHeight *0.1  + panOffset.y;
+  // console.log("adjustedX in mmmmmmmmmmm", adjustedX);
+  // console.log("canvasWidth in mmmmmmmmmmm", canvasWidth);
+
+  // /********************************************************* */
+  if (selectedValue === "mm") {
     
-  })
-  context.save();
+     adjustedX = canvasWidth*2 + panOffset.x;
+     adjustedY = canvasHeight *0.1  + panOffset.y;
+    // canvas.height = canvasHeight / 0.264
+    // adjustedX =newWidth
+    // adjustedY = newHeight
+      console.log("height in mmmmmmmmmmm", adjustedY)
+      console.log("adjusted x in mmmmmmmmmmm", adjustedX)
+      val_array.forEach((selectedEntityName, i) => {
+        if(i === 0){
+          adjustedY+=40 
+          console.log("adjustedY in if loop", adjustedY)
+          
+        }
+        else{
+          adjustedY+=canvasHeight *0.5
+          console.log("adjustedY in else loop", adjustedY)
+          
+        }
+        context.fillText(` ${selectedEntityName}`,adjustedX, adjustedY);    
+        })
+   
+  } else if (selectedValue === "inch") {
+     adjustedX = canvasWidth *60 + panOffset.x;
+     adjustedY = canvasHeight *0.1  + panOffset.y;
+    // canvas.height = canvasHeight / 0.010416667  // Convert to millimeters and adjust for DPI
+        val_array.forEach((selectedEntityName, i) => {
+          if(i === 0){
+            adjustedY+=50 
+            console.log("adjustedY in if loop", adjustedY)
+            
+          }
+        else{
+          adjustedY+=canvasHeight *8
+          console.log("adjustedY in else loop", adjustedY)
+          
+        }
+        context.fillText(` ${selectedEntityName}`,adjustedX, adjustedY);    
+        })
+    
+  } else if (selectedValue === "cm") {
+    // You can add the conversion factor from cm to inches here if needed.
+     adjustedX = canvasWidth*20 + panOffset.x;
+     adjustedY = canvasHeight*0.1   + panOffset.y;
+     console.log("adjustedX in for loop", adjustedX);
+    // canvas.height = canvasHeight /0.026458333
+        val_array.forEach((selectedEntityName, i) => {
+          if(i === 0){
+            adjustedY+=50 
+            console.log("adjustedY in if loop", adjustedY)
+            
+          }
+        else{
+          adjustedY+=canvasHeight *3.8
+          console.log("adjustedY in else loop", adjustedY)
+          
+        }
+        context.fillText(` ${selectedEntityName}`,adjustedX, adjustedY);    
+        })
+  }
+  else if (selectedValue === "Select unit") {
+    
+     adjustedX = canvasWidth *0.5 + panOffset.x;
+     adjustedY = canvasHeight *0.1  + panOffset.y;
+    // canvas.height = canvasHeight 
+    
+    console.log("width by default mmmmmmmmmmm", adjustedX)
   
+  };
+  /********************************************************* */
+ // val_array.forEach(selectedEntityName => {
+  //   adjustedY+=40
+  //   console.log("adjustedY in for loop", adjustedY)
+  //   context.fillText(` ${selectedEntityName}`,adjustedX, adjustedY);
+        
+  // })
+
+  context.save();
 };
 
 //Call drawCanvas whenever the selected entity name changes
@@ -1105,8 +1193,9 @@ useEffect(() => {
             <div className="dropdown">
               <button onClick={toggleDropdown} className="dropbtn">File</button>&emsp;
               <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
-                <a href="/label_Ui" >New</a>
-                
+                <a href="/" >New</a>
+                {/* <a href="/label_Ui" >New</a> */}
+                {/* replace with valid url of this page if integrated in other project to reload this page to have new client area or canvas */}
                 <input
                     type="file"
                     id="fileInput"
@@ -1248,14 +1337,14 @@ useEffect(() => {
          <img width="26" height="23" src="https://img.icons8.com/fluency/48/rectangle-stroked.png" alt="rectangle-stroked"/>&emsp;
         {/* <span htmlFor="rectangle">Rectangle</span>&emsp; */}
        
-        <input
+        {/* <input
           type="radio"
           id="pencil"
           checked={tool === "pencil"}
           onChange={() => setTool("pencil")}
         />
         <img width="25" height="22" src="https://img.icons8.com/external-itim2101-flat-itim2101/64/external-pencil-school-stationery-itim2101-flat-itim2101.png" alt="external-pencil-school-stationery-itim2101-flat-itim2101"/>&emsp;
-        {/* <label htmlFor="pencil">Pencil</label>&emsp; */}
+        <label htmlFor="pencil">Pencil</label>&emsp; */}
         
         <input type="radio" id="text" checked={tool === "text"} onChange={() => setTool("text")} />
         <img width="24" height="24" src="https://img.icons8.com/fluency/48/text-color.png" alt="text-color" />&emsp;&nbsp;
@@ -1292,14 +1381,11 @@ useEffect(() => {
         <label htmlFor="label_add"> Label Address : </label>
         <input type="text" id="label_add" name="label_add" size="10" />&emsp;
        
-        <Link to = '/admin-home'>
+         <Link to = '/admin-home'> {/*replace with desired url , otherwise gives error*/}
         <button
         variant="contained"
         size="small"
-        
         style={{backgroundColor:"#4169E1", color:"#FFFFFF"}}
-        onClick={() => history.push('/admin-home')}
-        //onClick={}
         >Back to Home
         </button>
         </Link>
@@ -1312,8 +1398,8 @@ useEffect(() => {
           onBlur={handleBlur}
           style={{
             position: "fixed",
-            top: selectedElement.y1 + panOffset.y +150 ,
-            left: selectedElement.x1 + panOffset.x+185,
+            top: selectedElement.y1 + panOffset.y +155 ,
+            left: selectedElement.x1 + panOffset.x+173,
             font: `${selectedElement.fontSize ||fontSize}px sans-serif`, // Use dynamic font size
             margin: 0,
             padding: 0,
@@ -1324,6 +1410,8 @@ useEffect(() => {
             whiteSpace: "pre",
             background: "transparent",
             zIndex: 2,
+            width: 80, // Set the width to your desired value
+            height: 40, // Set the height to your desired value
           }}
         />
       ) : null}
@@ -1381,31 +1469,32 @@ useEffect(() => {
           // onMouseMove={handleMouseMove}
           // onMouseUp={handleMouseUp}
           // style={{ position: "absolute", zIndex: 1 }}
+          
           onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
           onMouseMove={event => {
             const canvas = canvasRef.current;
             const canvasRect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - canvasRect.left;
-            const mouseY = event.clientY - canvasRect.top;
+            // const mouseX = event.clientX - canvasRect.left;
+            // const mouseY = event.clientY - canvasRect.top;
         
             // Check if the mouse is over the entity name
-            const entityNameRect = {
-              x: 130 + panOffset.x,
-              y: 50 + panOffset.y,
-              width: canvasRef.current.getContext('2d').measureText(selectedEntityName).width,
-              height: 16, // Adjust this value as needed
-            };
+            // const entityNameRect = {
+            //   x: 130 + panOffset.x,
+            //   y: 50 + panOffset.y,
+            //   width: canvasRef.current.getContext('2d').measureText(selectedEntityName).width,
+            //   height: 16, // Adjust this value as needed
+            // };
         
-            if (
-              mouseX >= entityNameRect.x &&
-              mouseX <= entityNameRect.x + entityNameRect.width &&
-              mouseY >= entityNameRect.y &&
-              mouseY <= entityNameRect.y + entityNameRect.height
-            ) {
-              canvas.style.cursor = "move"; // Change the cursor to 'move'
-            } else {
-              canvas.style.cursor = "default"; // Change the cursor back to 'default'
-            }
+            // if (
+            //   mouseX >= entityNameRect.x &&
+            //   mouseX <= entityNameRect.x + entityNameRect.width &&
+            //   mouseY >= entityNameRect.y &&
+            //   mouseY <= entityNameRect.y + entityNameRect.height
+            // ) {
+            //   canvas.style.cursor = "move"; // Change the cursor to 'move'
+            // } else {
+            //   canvas.style.cursor = "default"; // Change the cursor back to 'default'
+            // }
         
             handleMouseMove(event);
             // handleCanvasMouseMove();
