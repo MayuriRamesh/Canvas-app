@@ -298,7 +298,12 @@ const text_co_ords = [];
     let line_coordinates;
     let text_coordinates;
     let rect_coordinates;
-    let pen_coordinates
+    // let pen_coordinates
+    // Check if element has a valid type
+    if (!element.type) {
+      console.error('Invalid element type:', element);
+      return; // Exit early if the element has no type
+    }
 
     switch (element.type) {
       case "line":
@@ -321,6 +326,7 @@ const text_co_ords = [];
         // console.log(`Start Point: x=${line_coordinates.start.x}, y=${line_coordinates.start.y}`);
         // console.log(`End Point: x=${line_coordinates.end.x}, y=${line_coordinates.end.y}`);
         console.log(`x1 = ${line_coordinates.x1}, y1=${line_coordinates.y1},x2 = ${line_coordinates.x2}, y2=${line_coordinates.y2}`);
+        line_co_ords.push(line_coordinates);
         break;
 
       case "rectangle":
@@ -342,21 +348,22 @@ const text_co_ords = [];
         */
         // console.log(`Start Point: x=${rect_coordinates.start.x}, y=${rect_coordinates.start.y}`);
         // console.log(`End Point: x=${rect_coordinates.end.x}, y=${rect_coordinates.end.y}`);
+        rectangle_co_ords.push(rect_coordinates);
         break;
 
-      case "pencil":
-        const stroke = getStroke(element.points);
-        const path = new Path2D(getSvgPathFromStroke(stroke));
-        context.fill(path);
+      // case "pencil":
+      //   const stroke = getStroke(element.points);
+      //   const path = new Path2D(getSvgPathFromStroke(stroke));
+      //   context.fill(path);
 
-        pen_coordinates = {
-          type: "pencil",
-          points: element.points
-        };
+      //   pen_coordinates = {
+      //     type: "pencil",
+      //     points: element.points
+      //   };
 
-        console.log(`Type: ${pen_coordinates.type}`);
-        console.log(`points: ${pen_coordinates.points}`);
-        break;
+      //   console.log(`Type: ${pen_coordinates.type}`);
+      //   console.log(`points: ${pen_coordinates.points}`);
+      //   break;
 
       case "text":
         context.textBaseline = "top";
@@ -373,15 +380,16 @@ const text_co_ords = [];
 
         // console.log(`Type: ${text_coordinates.type}`);
         // console.log(`position: x=${text_coordinates.position.x}, y=${text_coordinates.position.y}`);
-        console.log(`x1 = ${text_coordinates.x1}, y1=${text_coordinates.y1}`); 
+        console.log(`x1 = ${text_coordinates.x1}, y1=${text_coordinates.y1}`);
+        text_co_ords.push(text_coordinates); 
         break;
       default:
         throw new Error(`Type not recognised: ${element.type}`);
     }
     // elementCoordinates.push(coordinates)
-      line_co_ords.push(line_coordinates);
-      rectangle_co_ords.push(rect_coordinates);
-      text_co_ords.push(text_coordinates);
+      
+      
+     
   };
 
   const [image, setImage] = useState(null);
@@ -971,7 +979,7 @@ console.log('After state update - isListOpen:', isListOpen);
     updateElement(id, x1, y1, null, null, type, { text: newText, tabOrder: selectedElement.tabOrder });
   };
 
-  const  jsonData= (labelNameValue,labelAddValue,coordinates) =>{
+  const  jsonData= (labelNameValue,labelAddValue) =>{
     const textareaValues = text_array.map(textArea => textArea.value);
       let data = {
         'label_text' : textareaValues, //text label array
@@ -1380,15 +1388,16 @@ useEffect(() => {
         <input type="text" id="label_name" name="label_name" size="10"/>&emsp;
         <label htmlFor="label_add"> Label Address : </label>
         <input type="text" id="label_add" name="label_add" size="10" />&emsp;
-       
-         <Link to = '/admin-home'> {/*replace with desired url , otherwise gives error*/}
+
+       {/*replace with desired url , otherwise gives error*/}
+         {/* <Link to = '/admin-home'> 
         <button
         variant="contained"
         size="small"
         style={{backgroundColor:"#4169E1", color:"#FFFFFF"}}
         >Back to Home
         </button>
-        </Link>
+        </Link> */}
 
       </div>
       </section>
