@@ -1,9 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import axios from 'axios';
-import getStroke from "perfect-freehand";
+// import getStroke from "perfect-freehand";
 import "./style.css";
 import Switch from '@mui/material/Switch';
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
+import QRCode from 'react-qr-code';
+import Barcode from 'react-barcode';
+// import JsBarcode from 'jsbarcode';
 
 const nearPoint = (x, y, x1, y1, name) => {
   return Math.abs(x - x1) < 5 && Math.abs(y - y1) < 5 ? name : null;
@@ -227,6 +230,9 @@ const App = ({ context }) => {
  
 
  const labelUnitSelect = document.getElementById("label-unit");
+ const [qrCodeGenerate, setQRCodeGenerate] = useState("");
+ const [barCodeGenerate, setBarCodeGenerate] = useState("123456789 "); //initial value of barcode
+
  
 
  const handleImageClick = () => {
@@ -540,7 +546,7 @@ const text_co_ords = [];
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_labels')
+    axios.get('http://127.0.0.1:5000/select_labels')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
   console.log("resssssssssssponseeee",response)
@@ -604,7 +610,7 @@ const handleEntityClick = (entityName) => {
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_units')
+    axios.get('http://127.0.0.1:5000/select_units')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -639,7 +645,7 @@ console.log('After state update - isListOpen:', isListOpen);
 
   if (isListOpen) {
     setIsListOpen(false);
-    axios.get('http://127.0.0.1:4000/select_date_time')
+    axios.get('http://127.0.0.1:5000/select_date_time')
     .then(response => {
     const responseData = response.data.data; // Access the 'data' property
 console.log("resssssssssssponseeee",response)
@@ -1013,7 +1019,7 @@ console.log('After state update - isListOpen:', isListOpen);
     //to send post req to generate code
 
     console.log("Posttttttt Dataaaaa, resssssssssssponseeee",post_data)
-     axios.post('http://127.0.0.1:4000/generate_zpl',post_data,{
+     axios.post('http://127.0.0.1:5000/generate_zpl',post_data,{
       headers: {
         'Content-Type': 'application/json'
       }
@@ -1189,6 +1195,58 @@ useEffect(() => {
 }, [selectedEntityName]);
 
 /************************************************************************ */
+// let barcodeInputs_array=[];
+// const barcodeInputEntities = ()=>{
+//   const barcodeInput = document.getElementById('barcodeEntity').value
+//   barcodeInputs_array.push(barcodeInput)
+//   console.log('***Barcode Input values*****:', barcodeInput);
+
+// }
+
+// let qrCodeInputs_array=[];
+// const qrcodeInputEntities = ()=>{
+//   const qrcodeInput = document.getElementById('qrcodeEntity').value
+//   qrCodeInputs_array.push(qrcodeInput)
+//   console.log('***Barcode Input values*****:', qrcodeInput);
+
+// }
+
+// function qrcodeInputEntities() {
+//   const qrData = "";  // Replace with your data
+//   const qrcode = new QRCode(document.getElementById("qrcode"), {
+//     text: qrData,
+//     width: 128,
+//     height: 128
+//   });
+
+  // Display the QR code container
+//   document.getElementById("qrcode-container").style.display = "block";
+// }
+
+// const generateQRcode = ()=>{
+//   setQRCodeGenerate()
+// }
+
+const handleQRInputChnage=(event)=>{
+  setQRCodeGenerate(event.target.value)
+};
+
+const handleBarcodeInputChange=(event) => {
+  setBarCodeGenerate(event.target.value)
+};
+
+
+// useEffect(() => {
+//   const canvas = canvasRef.current;
+//   const context = canvas.getContext('2d');
+//   // context.clearRect(0, 0, canvas.width, canvas.height);
+
+//   // Render the barcode using JsBarcode
+//   JsBarcode(canvas, barCodeGenerate, {
+//     width: 2,
+//     height: 20,
+//   });
+// }, [barCodeGenerate]);
 
   
     return (
@@ -1201,9 +1259,7 @@ useEffect(() => {
             <div className="dropdown">
               <button onClick={toggleDropdown} className="dropbtn">File</button>&emsp;
               <div id="myDropdown" className={`dropdown-content ${showDropdown ? 'show' : ''}`}>
-                <a href="/" >New</a>
                 {/* <a href="/label_Ui" >New</a> */}
-                {/* replace with valid url of this page if integrated in other project to reload this page to have new client area or canvas */}
                 <input
                     type="file"
                     id="fileInput"
@@ -1389,8 +1445,7 @@ useEffect(() => {
         <label htmlFor="label_add"> Label Address : </label>
         <input type="text" id="label_add" name="label_add" size="10" />&emsp;
 
-       {/*replace with desired url , otherwise gives error*/}
-         {/* <Link to = '/admin-home'> 
+       {/* <Link to = '/admin-home'> 
         <button
         variant="contained"
         size="small"
@@ -1398,6 +1453,14 @@ useEffect(() => {
         >Back to Home
         </button>
         </Link> */}
+       
+        <button
+        variant="contained"
+        size="small"
+        style={{backgroundColor:"#4169E1", color:"#FFFFFF"}}
+        >Back to Home
+        </button>
+        
 
       </div>
       </section>
@@ -1431,95 +1494,59 @@ useEffect(() => {
           <label><b>Behaviour</b></label>
           {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
 
-          <label htmlFor="tab-o">
-            Tab Order:
-             <input
-                id="tab-o"
-                type="number"
-                size="10"
-                // value={selectedElement.tabOrder}
-                value={selectedElement?.type === "text" ? selectedElement.tabOrder : ""}
-                onChange={handleTabOrderChange}
-              />
-            
-          </label>
-          {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
           
-          <label><b>Misc</b></label>
           {/* <hr style={{color:"#f4f0ec", width:"100%",height:"0.1px"}}></hr> */}
-
-          <label htmlFor="font">Font Size :&emsp;&nbsp;
-          <input type="number" id="tab-o" name="font"
+          <label htmlFor="barcodeEntity">Barcode :&nbsp;
+          <input type="text" id="barcodeEntity" name="barcodeEntity" value={barCodeGenerate} onChange={(event)=>{handleBarcodeInputChange(event)}}
+          />
+          {/* <button onClick={}>Generate</button> */}
+          </label>
+          
+          <Barcode value={barCodeGenerate} width={1} height={50}/>
+          
+          <label htmlFor="qrCodeEntity">QRcode :&nbsp;
+          <input type="text" id="qrCodeEntity" name="qrCodeEntity" value={qrCodeGenerate} onChange={(event)=>{handleQRInputChnage(event)}}
+          />
+          </label>
+          <br/>
+          
+          <span className="qr-code">
+          <QRCode value={qrCodeGenerate} />
+          </span>
+          <br/>
+          <label><b>Misc</b></label>
+         
+          <label htmlFor="font">Font Size :&nbsp;
+          <input type="number" id="font" name="font"
           value={fontSize}
           onChange={handleFontSizeChange}
          />
          </label>
           
 
-          <label htmlFor="style">Style :&emsp;&nbsp;&emsp;&emsp;
+          <label htmlFor="style">Style :&emsp;&nbsp;&nbsp;
           <input type="text" id="tab-o" name="style"/></label>
 
           <label htmlFor="H-R">Height-Ratio :
-          <input type="number" id="tab-o" name="H-R"/></label>
+          <input type="number" id="H-R" name="H-R"/></label>
 	{/*<hr style={{color:"#f4f0ec", width:"590%",height:"0.1px"}}></hr>*/}
         </div> 
         
         <div>
         <canvas
           id="canvas"
-          // width={window.innerWidth}
           ref={canvasRef}
           className="canvas_class"
-          // height={window.innerHeight}
           width={canvasWidth} 
           height={canvasHeight}
-          // onMouseDown={handleMouseDown}
-          // onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
-          // onMouseMove={handleMouseMove}
-          // onMouseUp={handleMouseUp}
-          // style={{ position: "absolute", zIndex: 1 }}
-          
           onMouseDown={event => handleMouseDown(event, canvasRef.current.getContext('2d'))}
           onMouseMove={event => {
             const canvas = canvasRef.current;
             const canvasRect = canvas.getBoundingClientRect();
-            // const mouseX = event.clientX - canvasRect.left;
-            // const mouseY = event.clientY - canvasRect.top;
-        
-            // Check if the mouse is over the entity name
-            // const entityNameRect = {
-            //   x: 130 + panOffset.x,
-            //   y: 50 + panOffset.y,
-            //   width: canvasRef.current.getContext('2d').measureText(selectedEntityName).width,
-            //   height: 16, // Adjust this value as needed
-            // };
-        
-            // if (
-            //   mouseX >= entityNameRect.x &&
-            //   mouseX <= entityNameRect.x + entityNameRect.width &&
-            //   mouseY >= entityNameRect.y &&
-            //   mouseY <= entityNameRect.y + entityNameRect.height
-            // ) {
-            //   canvas.style.cursor = "move"; // Change the cursor to 'move'
-            // } else {
-            //   canvas.style.cursor = "default"; // Change the cursor back to 'default'
-            // }
-        
             handleMouseMove(event);
-            // handleCanvasMouseMove();
           }}
           onMouseUp={handleMouseUp}
-        //   onMouseUp={event => {handleMouseUp(event);
-        //     handleCanvasMouseUp();
-        //   }
-        // }
-
-          // onDragOver={(e) => e.preventDefault()}
-          // onDrop={(e) => handleDrop(e)}
-          // onMouseMove={handleCanvasMouseMove}
-          // onMouseUp={handleCanvasMouseUp}
-         
-        >
+          >
         </canvas>
         </div>
         
